@@ -81,6 +81,7 @@ impl AppManager {
         self.db.get_all_apps().unwrap_or_default()
     }
 
+    #[allow(dead_code)]
     pub fn get_db(&self) -> &AppDatabase {
         &self.db
     }

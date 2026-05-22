@@ -9,20 +9,25 @@ pub struct CleanerPage {
     pub container: Box,
     list_box: ListBox,
     status_label: Label,
+    clean_all_btn: Button,
     cleaner: Arc<CleanupManager>,
 }
 
 impl CleanerPage {
     pub fn new(cleaner: Arc<CleanupManager>) -> Self {
-        let container = Box::new(gtk4::Orientation::Vertical, 12);
+        let container = Box::new(gtk4::Orientation::Vertical, 0);
+
+        let header = Box::new(gtk4::Orientation::Vertical, 2);
+        header.set_css_classes(&["page-header"]);
 
         let title = Label::new(Some("System Cleaner"));
         title.set_css_classes(&["page-title"]);
-        container.append(&title);
+        header.append(&title);
 
         let desc = Label::new(Some("Clean up system caches and free disk space."));
         desc.set_css_classes(&["page-description"]);
-        container.append(&desc);
+        header.append(&desc);
+        container.append(&header);
 
         let scrolled = ScrolledWindow::new();
         scrolled.set_vexpand(true);
@@ -34,20 +39,56 @@ impl CleanerPage {
 
         container.append(&scrolled);
 
+        let bottom = Box::new(gtk4::Orientation::Vertical, 6);
+        bottom.set_margin_top(4);
+        bottom.set_margin_bottom(4);
+
         let status_label = Label::new(None);
         status_label.set_css_classes(&["status-label"]);
-        container.append(&status_label);
+        bottom.append(&status_label);
+
+        let clean_all_btn = Button::with_label("Clean All");
+        clean_all_btn.set_css_classes(&["primary-button"]);
+        clean_all_btn.set_halign(gtk4::Align::Center);
+        bottom.append(&clean_all_btn);
+
+        container.append(&bottom);
 
         let page = CleanerPage {
             container,
             list_box,
             status_label,
+            clean_all_btn,
             cleaner,
         };
 
+        page.setup_clean_all();
         page.refresh();
 
         page
+    }
+
+    fn setup_clean_all(&self) {
+        let cleaner = self.cleaner.clone();
+        let list = self.list_box.clone();
+        let status = self.status_label.clone();
+        self.clean_all_btn.connect_clicked(move |_| {
+            status.set_text("Running all cleaners...");
+            let results = [cleaner.clean_user_cache(),
+                cleaner.clean_apt_cache(),
+                cleaner.clean_thumbnails(),
+                cleaner.clean_orphan_packages()];
+            let total: u64 = results.iter().map(|r| r.bytes_freed).sum();
+            let total_str = if total > 1024 * 1024 * 1024 {
+                format!("{:.2} GB", total as f64 / (1024.0 * 1024.0 * 1024.0))
+            } else if total > 1024 * 1024 {
+                format!("{:.2} MB", total as f64 / (1024.0 * 1024.0))
+            } else {
+                format!("{} bytes", total)
+            };
+            status.set_text(&format!("Clean complete! Total space freed: {}", total_str));
+            Self::populate_list(&cleaner, &list, &status);
+        });
     }
 
     pub fn refresh(&self) {
@@ -176,36 +217,6 @@ impl CleanerPage {
         orphan_box.append(&orphan_btn);
         orphan_row.set_child(Some(&orphan_box));
         list_box.append(&orphan_row);
-
-        let clean_all_btn = Button::with_label("🧹 Clean All");
-        clean_all_btn.set_css_classes(&["primary-button"]);
-        clean_all_btn.set_halign(gtk4::Align::Center);
-        clean_all_btn.set_margin_top(12);
-
-        let cleaner_all = cleaner.clone();
-        let list_all = list_box.clone();
-        let s_all = status.clone();
-        clean_all_btn.connect_clicked(move |_| {
-            s_all.set_text("Running all cleaners...");
-            let results = vec![
-                cleaner_all.clean_user_cache(),
-                cleaner_all.clean_apt_cache(),
-                cleaner_all.clean_thumbnails(),
-                cleaner_all.clean_orphan_packages(),
-            ];
-            let total: u64 = results.iter().map(|r| r.bytes_freed).sum();
-            let total_str = if total > 1024 * 1024 * 1024 {
-                format!("{:.2} GB", total as f64 / (1024.0 * 1024.0 * 1024.0))
-            } else if total > 1024 * 1024 {
-                format!("{:.2} MB", total as f64 / (1024.0 * 1024.0))
-            } else {
-                format!("{} bytes", total)
-            };
-            s_all.set_text(&format!("Clean complete! Total space freed: {}", total_str));
-            Self::populate_list(&cleaner_all, &list_all, &s_all);
-        });
-
-        list_box.append(&clean_all_btn);
     }
 
     pub fn widget(&self) -> &Box {

@@ -1,118 +1,166 @@
-/* App Pro - Modern GTK4 Dark/Light Theme */
-
-/* Base Styles */
 window {
     background-color: @theme_bg_color;
-    font-family: "Cantarell", "Noto Sans", sans-serif;
+    font-family: "Cantarell", "Noto Sans", -apple-system, sans-serif;
+    font-size: 12px;
 }
 
-/* Sidebar */
-.sidebar {
+frame, .frame, button, entry, .install-card, .drop-zone,
+.app-list, .process-list, .cleaner-list {
+    border-radius: 10px;
+}
+
+scrolledwindow {
+    border-radius: 0;
+}
+
+/* ── Tab Bar ── */
+.tab-bar {
     background-color: @theme_bg_color;
-    border-right: 1px solid @borders;
-    min-width: 200px;
+    border-bottom: 1px solid @borders;
+    padding: 0 4px;
 }
 
-.sidebar-row {
-    padding: 4px 0;
-    border-radius: 6px;
-    margin: 2px 6px;
+.tab-button {
     background-color: transparent;
-}
-
-.sidebar-row:selected {
-    background-color: @theme_selected_bg_color;
-    color: @theme_selected_fg_color;
-}
-
-.sidebar-row:hover {
-    background-color: @theme_hover_bg_color;
-}
-
-.sidebar-label {
-    font-size: 14px;
+    color: @theme_dim_label_color;
+    font-size: 12px;
     font-weight: 500;
-    padding: 6px 0;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 0;
+    border-bottom: 2px solid transparent;
+    min-height: 22px;
+    transition: all 150ms ease;
 }
 
-/* Page Titles */
+.tab-button:hover {
+    background-color: alpha(@theme_selected_bg_color, 0.06);
+    color: @theme_fg_color;
+}
+
+.tab-active {
+    color: @theme_selected_bg_color;
+    border-bottom: 2px solid @theme_selected_bg_color;
+    font-weight: 600;
+}
+
+.tab-active:hover {
+    background-color: alpha(@theme_selected_bg_color, 0.08);
+}
+
+/* ── Page Headers ── */
+.page-header {
+    background-color: @theme_bg_color;
+    border-bottom: 1px solid alpha(@borders, 0.5);
+    padding: 8px 14px;
+}
+
 .page-title {
-    font-size: 22px;
+    font-size: 15px;
     font-weight: 700;
-    padding: 16px 24px 4px 24px;
     color: @theme_fg_color;
 }
 
 .page-description {
-    font-size: 13px;
-    padding: 0 24px 8px 24px;
+    font-size: 11px;
     color: @theme_dim_label_color;
 }
 
-/* Drop Zone */
-.drop-zone {
-    border: 2px dashed @theme_dim_label_color;
+/* ── Content Area ── */
+.content-area {
+    padding: 0;
+}
+
+/* ── Install Card ── */
+.install-card {
+    background-color: @theme_base_color;
+    border: 1px solid @borders;
     border-radius: 12px;
-    background-color: alpha(@theme_selected_bg_color, 0.05);
-    min-height: 180px;
-    margin: 12px 24px;
+}
+
+.install-separator {
+    border-top: 1px solid alpha(@borders, 0.5);
+}
+
+/* ── Drop Zone ── */
+.drop-zone {
+    border: 2px dashed alpha(@theme_dim_label_color, 0.3);
+    border-radius: 12px;
+    background-color: alpha(@theme_selected_bg_color, 0.02);
+    min-height: 110px;
     transition: all 200ms ease;
 }
 
 .drop-zone:hover {
     border-color: @theme_selected_bg_color;
-    background-color: alpha(@theme_selected_bg_color, 0.1);
+    background-color: alpha(@theme_selected_bg_color, 0.07);
 }
 
 .drop-icon {
-    font-size: 48px;
+    font-size: 26px;
+    color: alpha(@theme_dim_label_color, 0.5);
 }
 
 .drop-text {
-    font-size: 18px;
+    font-size: 13px;
     font-weight: 600;
-    color: @theme_fg_color;
-}
-
-.drop-hint {
-    font-size: 12px;
     color: @theme_dim_label_color;
 }
 
-/* File Entry */
-.file-entry {
-    margin: 4px 24px;
-    border-radius: 6px;
+.drop-hint {
+    font-size: 11px;
+    color: alpha(@theme_dim_label_color, 0.5);
 }
 
-/* Buttons */
-.action-button {
-    padding: 6px 16px;
+/* ── File Entry ── */
+.file-entry {
+    border-radius: 8px;
+    min-height: 30px;
+    padding: 0 8px;
+}
+
+.browse-button {
+    border-radius: 8px;
+    padding: 4px 14px;
+    font-weight: 600;
+    min-height: 30px;
+}
+
+/* ── Buttons ── */
+button {
     border-radius: 6px;
     font-weight: 500;
+    padding: 4px 12px;
+    transition: all 150ms ease;
+    min-height: 24px;
+}
+
+.action-button {
+    font-size: 11px;
+    padding: 2px 8px;
+    min-height: 22px;
 }
 
 .primary-button {
-    padding: 10px 32px;
-    border-radius: 8px;
+    padding: 6px 20px;
     background-color: @theme_selected_bg_color;
     color: @theme_selected_fg_color;
-    font-weight: 700;
-    font-size: 14px;
+    font-weight: 600;
+    font-size: 12px;
     border: none;
+    border-radius: 8px;
+    min-height: 26px;
 }
 
 .primary-button:hover {
-    opacity: 0.9;
+    background-color: shade(@theme_selected_bg_color, 1.1);
 }
 
 .danger-button {
-    padding: 6px 16px;
-    border-radius: 6px;
     background-color: #c01c28;
     color: white;
-    font-weight: 500;
     border: none;
+    font-size: 11px;
 }
 
 .danger-button:hover {
@@ -120,157 +168,196 @@ window {
 }
 
 .clean-button {
-    padding: 6px 20px;
-    border-radius: 6px;
     background-color: shade(@theme_selected_bg_color, 1.2);
     color: @theme_selected_fg_color;
-    font-weight: 500;
     border: none;
+    font-size: 11px;
+}
+
+.clean-button:hover {
+    background-color: shade(@theme_selected_bg_color, 1.3);
 }
 
 .uninstall-button {
-    padding: 4px 14px;
-    border-radius: 6px;
+    padding: 2px 8px;
     background-color: #c01c28;
     color: white;
-    font-weight: 500;
     border: none;
-    font-size: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 5px;
+    min-height: 20px;
 }
 
 .uninstall-button:hover {
     background-color: #e02430;
 }
 
-/* App List */
+/* ── App List ── */
 .app-list {
-    margin: 8px 24px;
-    border-radius: 8px;
+    margin: 2px 0;
+    border: none;
+}
+
+.app-row {
+    padding: 0 4px;
 }
 
 .app-icon {
-    font-size: 32px;
-    padding: 4px 8px;
+    font-size: 18px;
+    padding: 2px 4px;
 }
 
 .app-name {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 600;
     color: @theme_fg_color;
 }
 
 .app-meta {
-    font-size: 11px;
+    font-size: 10px;
     color: @theme_dim_label_color;
 }
 
-/* Process List */
+/* ── Process List ── */
 .process-list {
-    margin: 8px 24px;
-    border-radius: 8px;
-}
-
-.process-header {
-    font-size: 12px;
-    font-weight: 700;
-    color: @theme_dim_label_color;
-    text-transform: uppercase;
+    margin: 2px 0;
+    border: none;
 }
 
 .process-header-row {
-    background-color: alpha(@theme_dim_label_color, 0.05);
+    background-color: alpha(@theme_dim_label_color, 0.03);
     border-bottom: 1px solid @borders;
+}
+
+.process-header {
+    font-size: 10px;
+    font-weight: 700;
+    color: @theme_dim_label_color;
+}
+
+.process-row {
+    padding: 0 4px;
 }
 
 .process-pid {
     font-family: "Fira Code", "Iosevka", monospace;
     font-weight: 600;
-    font-size: 13px;
+    font-size: 11px;
 }
 
 .process-name {
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 500;
 }
 
 .process-mem {
-    font-size: 12px;
+    font-size: 11px;
     color: @theme_dim_label_color;
+    font-family: "Fira Code", "Iosevka", monospace;
 }
 
 .process-state {
-    font-size: 12px;
+    font-size: 11px;
     font-family: monospace;
 }
 
 .process-user {
-    font-size: 12px;
+    font-size: 11px;
     color: @theme_dim_label_color;
 }
 
-/* Cleaner List */
+/* ── Cleaner List ── */
 .cleaner-list {
-    margin: 8px 24px;
-    border-radius: 8px;
+    margin: 2px 0;
+    border: none;
+}
+
+.cleaner-row {
+    padding: 0 4px;
 }
 
 .cleaner-name {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 600;
     color: @theme_fg_color;
 }
 
 .cleaner-path {
-    font-size: 11px;
+    font-size: 10px;
     color: @theme_dim_label_color;
     font-family: monospace;
 }
 
 .cleaner-size {
-    font-size: 13px;
+    font-size: 11px;
     color: @theme_dim_label_color;
 }
 
-/* Info Page */
-.info-frame {
-    border-radius: 8px;
-    margin: 4px 0;
+/* ── Info Sections ── */
+.info-section {
+    border: none;
+    margin: 0;
+    background-color: transparent;
 }
 
-.info-frame > label {
+.info-section-card {
+    background-color: @theme_base_color;
+    border: 1px solid @borders;
+    border-radius: 10px;
+    margin: 4px 12px;
+}
+
+.info-section-title {
+    font-size: 11px;
     font-weight: 700;
-    font-size: 14px;
-    padding: 4px 0;
+    color: @theme_dim_label_color;
+    padding: 2px 0 4px 0;
+    letter-spacing: 0.5px;
+}
+
+.info-row {
+    padding: 2px 0;
 }
 
 .info-key {
-    font-size: 13px;
-    font-weight: 600;
-    color: @theme_dim_label_color;
+    font-size: 12px;
+    font-weight: 400;
+    color: @theme_fg_color;
 }
 
 .info-value {
-    font-size: 13px;
-    color: @theme_fg_color;
-    font-family: "Fira Code", "Iosevka", monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: @theme_dim_label_color;
+    font-family: "Cantarell", "Noto Sans", sans-serif;
 }
 
-/* Status Labels */
+.info-separator {
+    border-bottom: 1px solid alpha(@borders, 0.4);
+    margin: 1px 0;
+}
+
+/* ── Status ── */
 .status-label {
-    font-size: 13px;
-    padding: 8px 24px;
+    font-size: 11px;
+    padding: 4px 12px;
     color: @theme_dim_label_color;
     font-style: italic;
 }
 
 .empty-label {
-    font-size: 14px;
+    font-size: 12px;
     color: @theme_dim_label_color;
-    padding: 24px;
+    padding: 16px;
 }
 
-/* Selection */
+/* ── Selection ── */
 row:selected {
     background-color: @theme_selected_bg_color;
+    color: @theme_selected_fg_color;
+}
+
+row:selected label {
     color: @theme_selected_fg_color;
 }

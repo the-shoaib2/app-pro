@@ -10,6 +10,7 @@ pub struct ExecResult {
     pub success: bool,
     pub stdout: String,
     pub stderr: String,
+    #[allow(dead_code)]
     pub exit_code: Option<i32>,
 }
 
@@ -23,6 +24,7 @@ impl SystemExec {
         Ok(Self::from_output(output))
     }
 
+    #[allow(dead_code)]
     pub fn run_with_sudo<I, S>(cmd: &str, args: I) -> io::Result<ExecResult>
     where
         I: IntoIterator<Item = S>,
@@ -46,6 +48,7 @@ impl SystemExec {
         Ok(Self::from_output(output))
     }
 
+    #[allow(dead_code)]
     pub fn run_script(script: &str) -> io::Result<ExecResult> {
         let output = Command::new("sh").arg("-c").arg(script).output()?;
         Ok(Self::from_output(output))

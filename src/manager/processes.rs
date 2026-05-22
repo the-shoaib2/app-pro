@@ -4,6 +4,7 @@ use crate::core::SystemExec;
 pub struct ProcessInfo {
     pub pid: u32,
     pub name: String,
+    #[allow(dead_code)]
     pub cpu_percent: f32,
     pub memory_bytes: u64,
     pub state: String,
@@ -70,9 +71,10 @@ impl ProcessManager {
         }
     }
 
+    #[allow(dead_code)]
     pub fn kill_process_by_name(name: &str, force: bool) -> Result<String, String> {
         let sig = if force { "-9" } else { "-15" };
-        let result = SystemExec::run("pkill", &[sig, name]);
+        let result = SystemExec::run("pkill", [sig, name]);
         match result {
             Ok(r) if r.success => Ok(format!("Process '{}' terminated", name)),
             Ok(r) => Err(format!("Failed to kill '{}': {}", name, r.stderr)),

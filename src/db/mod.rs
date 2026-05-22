@@ -41,6 +41,7 @@ impl AppDatabase {
         Ok(db)
     }
 
+    #[allow(dead_code)]
     pub fn new_from_conn(conn: Connection) -> Self {
         let db = AppDatabase { conn: Mutex::new(conn) };
         db.initialize_tables().ok();
@@ -129,6 +130,7 @@ impl AppDatabase {
         Ok(apps)
     }
 
+    #[allow(dead_code)]
     pub fn get_app_by_id(&self, id: &str) -> Result<Option<AppEntry>> {
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare(
@@ -160,6 +162,7 @@ impl AppDatabase {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn app_exists(&self, name: &str, install_type: &str) -> Result<bool> {
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare(
@@ -179,6 +182,7 @@ impl AppDatabase {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn get_cleanup_history(&self) -> Result<Vec<CacheEntry>> {
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare(
@@ -198,6 +202,7 @@ impl AppDatabase {
         Ok(entries)
     }
 
+    #[allow(dead_code)]
     pub fn set_setting(&self, key: &str, value: &str) -> Result<()> {
         let conn = self.conn.lock().unwrap();
         conn.execute(
@@ -207,6 +212,7 @@ impl AppDatabase {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn get_setting(&self, key: &str) -> Result<Option<String>> {
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare("SELECT value FROM settings WHERE key = ?1")?;

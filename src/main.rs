@@ -44,7 +44,7 @@ fn main() {
         let ui = ui::AppProUI::new(app, app_manager.clone(), cleaner_manager.clone());
 
         if let Some(ref file_path) = file_to_install {
-            log::info!("File to install: {}", file_path);
+            ui.set_file_path(file_path);
         }
 
         ui.show();

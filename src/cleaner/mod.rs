@@ -6,6 +6,7 @@ use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 pub struct CleanupResult {
+    #[allow(dead_code)]
     pub path: String,
     pub description: String,
     pub bytes_freed: u64,
@@ -160,10 +161,12 @@ impl CleanupManager {
         }
     }
 
+    #[allow(dead_code)]
     pub fn get_size_of(path: &str) -> u64 {
         SystemExec::get_size(path)
     }
 
+    #[allow(dead_code)]
     pub fn get_history(&self) -> Vec<CacheEntry> {
         self.db.get_cleanup_history().unwrap_or_default()
     }

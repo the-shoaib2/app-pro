@@ -101,7 +101,7 @@ impl DebInstaller {
         let version = "1.0".to_string();
 
         // Try to extract actual package info
-        if let Ok(result) = SystemExec::run("dpkg-deb", &["--show", "--showformat=${Package}::${Version}", path.to_str().unwrap_or("")]) {
+        if let Ok(result) = SystemExec::run("dpkg-deb", ["--show", "--showformat=${Package}::${Version}", path.to_str().unwrap_or("")]) {
             if result.success {
                 let parts: Vec<&str> = result.stdout.trim().split("::").collect();
                 if parts.len() == 2 {

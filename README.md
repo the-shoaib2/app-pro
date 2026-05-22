@@ -14,74 +14,71 @@ Unified Linux system utility: application installer, uninstaller, system cleaner
 - **SQLite** database tracking all installed apps and cleanup history
 - **Auto-creates .desktop entries** for AppImage and zip installations
 
-## Requirements
+## Quick Start
 
-- Rust 1.70+ (for building)
-- GTK4 development libraries (for building)
-- Linux with systemd (for runtime)
-- Commands: `dpkg`, `apt-get`, `kill`, `pkill`, `unzip`, `pkexec`
-
-### Install Build Dependencies
+### Download (pre-built binary)
 
 ```bash
-# Debian/Ubuntu/Kali
-sudo apt install libgtk-4-dev libpango1.0-dev libcairo2-dev \
-  libgdk-pixbuf-2.0-dev libgraphene-1.0-dev libvulkan-dev \
-  libwayland-dev libxkbcommon-dev libepoxy-dev libharfbuzz-dev \
-  libfontconfig-dev libfreetype-dev libfribidi-dev libthai-dev \
-  libx11-dev libxrender-dev libxcb-render0-dev libxcb-shm0-dev \
-  libpixman-1-dev libpng-dev libbrotli-dev libbz2-dev \
-  libmount-dev libselinux-dev libseccomp-dev liblcms2-dev \
-  libglycin-2-dev libdatrie-dev
+# Download latest release
+curl -LO https://github.com/YOUR_USER/app-pro/releases/latest/download/app-pro-linux-x86_64
+chmod +x app-pro-linux-x86_64
+./app-pro-linux-x86_64
 ```
 
-## Build
+### Install to system
 
 ```bash
-# Release build
+sudo install -m 755 app-pro-linux-x86_64 /usr/local/bin/app-pro
+# Now you can run from anywhere:
+app-pro
+```
+
+### Build from source
+
+```bash
+# Install GTK4 development libraries
+sudo apt install libgtk-4-dev libgraphene-1.0-dev libvulkan-dev \
+  libharfbuzz-dev libfontconfig-dev libfreetype-dev libpixman-1-dev
+
+# Build
 cargo build --release
 
 # Run
 ./target/release/app-pro
 
-# Run with a file to pre-select (e.g., from file manager)
+# Run with a file pre-selected
 ./target/release/app-pro /path/to/package.deb
 ```
 
-## Test
+### Test
 
 ```bash
 cargo test
 ```
 
+## GitHub Actions
+
+Every push to `main` triggers an automatic build. The binary is available as a build artifact.
+Pushing a tag `v*` creates a GitHub Release with the binary attached.
+
 ## Project Structure
 
 ```
 src/
-├── main.rs              # Entry point, GTK initialization
-├── core/mod.rs          # System execution helpers (Command wrappers, file ops)
+├── main.rs
+├── core/mod.rs           # System execution, file ops
 ├── installer/
-│   ├── mod.rs           # InstallType enum, InstallResult struct
-│   ├── deb.rs           # APT/dpkg .deb install/uninstall
-│   ├── appimage.rs      # AppImage copy + .desktop entry
-│   └── zip.rs           # Zip extraction + binary discovery
+│   ├── mod.rs, deb.rs, appimage.rs, zip.rs
 ├── manager/
-│   ├── mod.rs           # AppManager orchestration
-│   └── processes.rs     # /proc process lister + kill
+│   ├── mod.rs, processes.rs
 ├── cleaner/
-│   ├── mod.rs           # Cache/orphan cleanup
-│   └── cache.rs         # Cache size analyzer
-├── db/mod.rs            # SQLite database (apps, cleanup, settings)
+│   ├── mod.rs, cache.rs
+├── db/mod.rs             # SQLite database
 └── ui/
-    ├── app.rs           # Main window, CSS provider
-    ├── sidebar.rs       # Navigation sidebar
-    ├── install_page.rs  # File chooser + install button
-    ├── installed_page.rs# Installed apps list + uninstall
-    ├── processes_page.rs# Process table + kill buttons
-    ├── cleaner_page.rs  # Cache cleaners + Clean All
-    ├── info_page.rs     # System information display
-    ├── mod.rs           # Module re-exports
-    └── style.css        # 276-line theme
+    ├── app.rs, sidebar.rs
+    ├── install_page.rs, installed_page.rs
+    ├── processes_page.rs, cleaner_page.rs
+    ├── info_page.rs, mod.rs, style.css
 ```
 
 ## License

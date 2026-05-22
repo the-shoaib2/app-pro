@@ -7,34 +7,33 @@ pub struct ProcessesPage {
     pub container: Box,
     list_box: ListBox,
     status_label: Label,
-    auto_refresh: bool,
 }
 
 impl ProcessesPage {
     pub fn new() -> Self {
-        let container = Box::new(gtk4::Orientation::Vertical, 12);
+        let container = Box::new(gtk4::Orientation::Vertical, 0);
+
+        let header = Box::new(gtk4::Orientation::Horizontal, 6);
+        header.set_css_classes(&["page-header"]);
 
         let title = Label::new(Some("Running Processes"));
         title.set_css_classes(&["page-title"]);
-        container.append(&title);
+        title.set_hexpand(true);
+        header.append(&title);
 
-        // Toolbar
-        let toolbar = Box::new(gtk4::Orientation::Horizontal, 8);
-        toolbar.set_halign(gtk4::Align::End);
-
-        let refresh_btn = Button::with_label("🔄 Refresh");
+        let refresh_btn = Button::with_label("Refresh");
         refresh_btn.set_css_classes(&["action-button"]);
 
-        let kill_btn = Button::with_label("✕ Kill Selected");
+        let kill_btn = Button::with_label("Kill");
         kill_btn.set_css_classes(&["danger-button"]);
 
-        let force_kill_btn = Button::with_label("✕ Force Kill");
+        let force_kill_btn = Button::with_label("Force Kill");
         force_kill_btn.set_css_classes(&["danger-button"]);
 
-        toolbar.append(&refresh_btn);
-        toolbar.append(&kill_btn);
-        toolbar.append(&force_kill_btn);
-        container.append(&toolbar);
+        header.append(&refresh_btn);
+        header.append(&kill_btn);
+        header.append(&force_kill_btn);
+        container.append(&header);
 
         let scrolled = ScrolledWindow::new();
         scrolled.set_vexpand(true);
@@ -54,7 +53,6 @@ impl ProcessesPage {
             container,
             list_box,
             status_label,
-            auto_refresh: false,
         };
 
         page.refresh();
@@ -140,11 +138,12 @@ impl ProcessesPage {
         header_box.set_margin_start(12);
         header_box.set_margin_end(12);
 
-        for text in &["PID", "Name", "Memory", "State", "User"] {
+        let widths: [i32; 5] = [55, 140, 80, 55, 70];
+        for (i, text) in ["PID", "Name", "Memory", "State", "User"].iter().enumerate() {
             let h = Label::new(Some(text));
             h.set_css_classes(&["process-header"]);
             h.set_halign(gtk4::Align::Start);
-            h.set_width_request(100);
+            h.set_width_request(widths[i]);
             header_box.append(&h);
         }
         header_row.set_child(Some(&header_box));
@@ -154,19 +153,16 @@ impl ProcessesPage {
         for proc in &processes {
             let row = ListBoxRow::new();
             let hbox = Box::new(gtk4::Orientation::Horizontal, 12);
-            hbox.set_margin_top(6);
-            hbox.set_margin_bottom(6);
-            hbox.set_margin_start(12);
-            hbox.set_margin_end(12);
+            hbox.set_css_classes(&["process-row"]);
 
             let pid_label = Label::new(Some(&proc.pid.to_string()));
             pid_label.set_css_classes(&["process-pid"]);
-            pid_label.set_width_request(100);
+            pid_label.set_width_request(55);
             pid_label.set_halign(gtk4::Align::Start);
 
             let name_label = Label::new(Some(&proc.name));
             name_label.set_css_classes(&["process-name"]);
-            name_label.set_width_request(200);
+            name_label.set_hexpand(true);
             name_label.set_halign(gtk4::Align::Start);
             name_label.set_ellipsize(gtk4::pango::EllipsizeMode::End);
 
@@ -179,17 +175,17 @@ impl ProcessesPage {
             };
             let mem_label = Label::new(Some(&mem_str));
             mem_label.set_css_classes(&["process-mem"]);
-            mem_label.set_width_request(100);
-            mem_label.set_halign(gtk4::Align::Start);
+            mem_label.set_width_request(80);
+            mem_label.set_halign(gtk4::Align::End);
 
             let state_label = Label::new(Some(&proc.state));
             state_label.set_css_classes(&["process-state"]);
-            state_label.set_width_request(100);
-            state_label.set_halign(gtk4::Align::Start);
+            state_label.set_width_request(55);
+            state_label.set_halign(gtk4::Align::Center);
 
             let user_label = Label::new(Some(&proc.user));
             user_label.set_css_classes(&["process-user"]);
-            user_label.set_width_request(100);
+            user_label.set_width_request(70);
             user_label.set_halign(gtk4::Align::Start);
 
             hbox.append(&pid_label);

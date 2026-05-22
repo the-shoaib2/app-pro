@@ -1,5 +1,5 @@
 use gtk4::prelude::*;
-use gtk4::{self, ListBox, ListBoxRow, Label};
+use gtk4::{self, Box, Button};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Page {
@@ -11,62 +11,82 @@ pub enum Page {
 }
 
 pub struct Sidebar {
-    pub container: ListBox,
-    pages: Vec<(Page, String)>,
+    pub container: Box,
+    #[allow(dead_code)]
+    active_page: Page,
 }
 
 impl Sidebar {
     pub fn new() -> Self {
-        let sidebar = ListBox::new();
-        sidebar.set_css_classes(&["sidebar"]);
+        let container = Box::new(gtk4::Orientation::Horizontal, 0);
+        container.set_css_classes(&["tab-bar"]);
 
-        let pages: Vec<(Page, String)> = vec![
-            (Page::Install, "📥  Install".to_string()),
-            (Page::InstalledApps, "📦  Installed".to_string()),
-            (Page::RunningProcesses, "⚙️  Processes".to_string()),
-            (Page::Cleaner, "🧹  Cleaner".to_string()),
-            (Page::SystemInfo, "ℹ️  System Info".to_string()),
+        let page_labels = vec![
+            (Page::Install, "Install"),
+            (Page::InstalledApps, "Installed"),
+            (Page::RunningProcesses, "Processes"),
+            (Page::Cleaner, "Cleaner"),
+            (Page::SystemInfo, "System Info"),
         ];
 
-        for (_, label_text) in &pages {
-            let row = ListBoxRow::new();
-            let label = Label::new(Some(label_text));
-            label.set_halign(gtk4::Align::Start);
-            label.set_margin_start(16);
-            label.set_margin_end(16);
-            label.set_margin_top(8);
-            label.set_margin_bottom(8);
-            label.set_css_classes(&["sidebar-label"]);
-            row.set_child(Some(&label));
-            row.set_css_classes(&["sidebar-row"]);
-            sidebar.append(&row);
+        for (_, label) in &page_labels {
+            let btn = Button::with_label(label);
+            btn.set_css_classes(&["tab-button"]);
+            btn.set_can_focus(false);
+            if let Some(cursor) = gtk4::gdk::Cursor::from_name("pointer", None) {
+                btn.set_cursor(Some(&cursor));
+            }
+            container.append(&btn);
         }
 
-        // Select first item
-        if let Some(first_row) = sidebar.first_child() {
-            if let Some(list_box_row) = first_row.dynamic_cast_ref::<ListBoxRow>() {
-                sidebar.select_row(Some(list_box_row));
+        if let Some(child) = container.first_child() {
+            if let Some(btn) = child.dynamic_cast_ref::<Button>() {
+                btn.set_css_classes(&["tab-button", "tab-active"]);
             }
         }
 
-        sidebar.set_activate_on_single_click(true);
-
-        Sidebar { container: sidebar, pages }
+        Sidebar {
+            container,
+            active_page: Page::Install,
+        }
     }
 
-    pub fn connect_page_changed<F: Fn(Page) + 'static>(&self, callback: F) {
-        let pages = self.pages.clone();
-        self.container.connect_row_activated(move |_, row| {
-            let index = row.index();
-            if index >= 0 {
-                if let Some(page_data) = pages.get(index as usize) {
-                    callback(page_data.0);
-                }
+    pub fn connect_page_changed<F: Fn(Page) + 'static + Clone>(&self, callback: F) {
+        let tab_bar = self.container.clone();
+        let mut index = 0;
+        let mut child = self.container.first_child();
+        while let Some(widget) = child {
+            if let Some(btn) = widget.dynamic_cast_ref::<Button>() {
+                let page = match index {
+                    0 => Page::Install,
+                    1 => Page::InstalledApps,
+                    2 => Page::RunningProcesses,
+                    3 => Page::Cleaner,
+                    4 => Page::SystemInfo,
+                    _ => Page::Install,
+                };
+                let cb = callback.clone();
+                let bar = tab_bar.clone();
+                let btn_clone = btn.clone();
+                btn.connect_clicked(move |_| {
+                    let mut c = bar.first_child();
+                    while let Some(w) = c {
+                        if let Some(b) = w.dynamic_cast_ref::<Button>() {
+                            b.set_css_classes(&["tab-button"]);
+                        }
+                        c = w.next_sibling();
+                    }
+                    btn_clone.set_css_classes(&["tab-button", "tab-active"]);
+                    cb(page);
+                });
+                index += 1;
             }
-        });
+            child = widget.next_sibling();
+        }
+        callback(Page::Install);
     }
 
-    pub fn widget(&self) -> &ListBox {
+    pub fn widget(&self) -> &Box {
         &self.container
     }
 }

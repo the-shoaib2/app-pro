@@ -13,16 +13,21 @@ pub struct InstalledAppsPage {
 
 impl InstalledAppsPage {
     pub fn new(manager: Arc<AppManager>) -> Self {
-        let container = Box::new(gtk4::Orientation::Vertical, 12);
+        let container = Box::new(gtk4::Orientation::Vertical, 0);
+
+        let header = Box::new(gtk4::Orientation::Horizontal, 0);
+        header.set_css_classes(&["page-header"]);
+        header.set_hexpand(true);
 
         let title = Label::new(Some("Installed Applications"));
         title.set_css_classes(&["page-title"]);
-        container.append(&title);
+        title.set_hexpand(true);
+        header.append(&title);
 
-        let refresh_button = Button::with_label("🔄 Refresh");
+        let refresh_button = Button::with_label("Refresh");
         refresh_button.set_css_classes(&["action-button"]);
-        refresh_button.set_halign(gtk4::Align::End);
-        container.append(&refresh_button);
+        header.append(&refresh_button);
+        container.append(&header);
 
         let scrolled = ScrolledWindow::new();
         scrolled.set_vexpand(true);

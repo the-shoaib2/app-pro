@@ -29,7 +29,7 @@ impl ZipInstaller {
         fs::create_dir_all(&temp_dir).ok();
 
         // Extract zip using unzip
-        let result = SystemExec::run("unzip", &["-o", path.to_str().unwrap_or(""), "-d", temp_dir.to_str().unwrap_or("")]);
+        let result = SystemExec::run("unzip", ["-o", path.to_str().unwrap_or(""), "-d", temp_dir.to_str().unwrap_or("")]);
 
         match result {
             Ok(exec) if exec.success => {
@@ -293,6 +293,7 @@ impl ZipInstaller {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn get_installed_apps() -> Vec<(String, String, u64)> {
         let apps_dir = Self::get_apps_dir();
         if !apps_dir.exists() {
@@ -303,7 +304,7 @@ impl ZipInstaller {
         if let Ok(entries) = fs::read_dir(&apps_dir) {
             for entry in entries.flatten() {
                 if entry.path().is_dir() {
-                    let size = SystemExec::get_size(entry.path()) as u64;
+                    let size = SystemExec::get_size(entry.path());
                     apps.push((
                         entry.file_name().to_string_lossy().to_string(),
                         entry.path().to_string_lossy().to_string(),

@@ -150,7 +150,7 @@ impl AppImageInstaller {
             .replace("_", "-");
         // Get just the app name part (before version numbers)
         let parts: Vec<&str> = name.split('-').collect();
-        if parts.len() > 1 && parts.last().map_or(false, |p| p.chars().next().map_or(false, |c| c.is_ascii_digit())) {
+        if parts.len() > 1 && parts.last().is_some_and(|p| p.chars().next().is_some_and(|c| c.is_ascii_digit())) {
             parts[..parts.len()-1].join("-")
         } else {
             name
@@ -161,14 +161,14 @@ impl AppImageInstaller {
         // Try to extract icon embedded in AppImage using --appimage-extract
         let _extract_dir = PathBuf::from("/tmp").join(format!("appimage-extract-{}", app_name));
 
-        let result = SystemExec::run(appimage_path.to_str().unwrap_or(""), &["--appimage-extract"]);
+        let result = SystemExec::run(appimage_path.to_str().unwrap_or(""), ["--appimage-extract"]);
         if result.is_ok() && result.unwrap().success {
             // AppImage extracts to ./squashfs-root
             let squashfs = PathBuf::from("squashfs-root");
             if squashfs.exists() {
                 let icon = Self::find_icon_in_dir(&squashfs, app_name);
                 if let Some(icon_path) = icon {
-                    let dest = Self::get_apps_dir().join(&format!("{}.png", app_name));
+                    let dest = Self::get_apps_dir().join(format!("{}.png", app_name));
                     fs::create_dir_all(dest.parent().unwrap()).ok();
                     fs::copy(&icon_path, &dest).ok();
                     fs::remove_dir_all(&squashfs).ok();
@@ -266,6 +266,7 @@ impl AppImageInstaller {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn get_installed_apps() -> Vec<(String, String, u64)> {
         let apps_dir = Self::get_apps_dir();
         if !apps_dir.exists() {
@@ -277,16 +278,14 @@ impl AppImageInstaller {
             for entry in entries.flatten() {
                 if entry.path().is_dir() {
                     if let Ok(mut dir_entries) = fs::read_dir(entry.path()) {
-                        if let Some(first_file) = dir_entries.next() {
-                            if let Ok(f) = first_file {
-                                let path = f.path();
-                                let size = path.metadata().map(|m| m.len()).unwrap_or(0);
-                                apps.push((
-                                    entry.file_name().to_string_lossy().to_string(),
-                                    path.to_string_lossy().to_string(),
-                                    size,
-                                ));
-                            }
+                        if let Some(Ok(f)) = dir_entries.next() {
+                            let path = f.path();
+                            let size = path.metadata().map(|m| m.len()).unwrap_or(0);
+                            apps.push((
+                                entry.file_name().to_string_lossy().to_string(),
+                                path.to_string_lossy().to_string(),
+                                size,
+                            ));
                         }
                     }
                 }
