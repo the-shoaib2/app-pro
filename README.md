@@ -5,7 +5,7 @@ Linux system utility — install apps (.deb, .AppImage, .zip), uninstall, manage
 ## Install
 
 ```bash
-curl -LO https://github.com/YOUR_USER/app-pro/releases/latest/download/app-pro-linux-x86_64
+curl -LO https://github.com/the-shoaib2/app-pro/releases/latest/download/app-pro-linux-x86_64
 chmod +x app-pro-linux-x86_64
 sudo install -m 755 app-pro-linux-x86_64 /usr/local/bin/app-pro
 app-pro

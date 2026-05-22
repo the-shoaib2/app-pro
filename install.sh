@@ -2,15 +2,14 @@
 set -euo pipefail
 
 # App Pro - Installer
-# Usage: curl -L https://github.com/USER/app-pro/releases/latest/download/app-pro-linux-x86_64 | bash
-#   or: ./install.sh /path/to/app-pro
+# Usage: ./install.sh /path/to/app-pro
 
 BIN="${1:-./target/release/app-pro}"
 DEST="/usr/local/bin/app-pro"
 
 if [ ! -f "$BIN" ]; then
     echo "Usage: $0 <path-to-app-pro-binary>"
-    echo "Or download from https://github.com/USER/app-pro/releases"
+    echo "Or download from https://github.com/the-shoaib2/app-pro/releases"
     exit 1
 fi
 
