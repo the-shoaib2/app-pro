@@ -30,7 +30,7 @@ fn test_binary_help_flag() {
 
 #[test]
 fn test_deb_file_magic_bytes() {
-    let sample = std::path::Path::new("/var/cache/apt/archives");
+    let _sample = std::path::Path::new("/var/cache/apt/archives");
     // Just verify the `file` command works at all
     let output = Command::new("file")
         .arg("--version")
@@ -49,7 +49,7 @@ fn test_dpkg_available() {
 
 #[test]
 fn test_system_has_required_commands() {
-    for cmd in &["dpkg", "apt-get", "kill", "pkill", "unzip"] {
+    for cmd in &["dpkg", "apt-get", "kill", "pkill", "unzip", "curl"] {
         let result = Command::new("which")
             .arg(cmd)
             .output();

@@ -86,10 +86,196 @@ impl InfoPage {
             0
         };
 
-        content.append(&Self::section("APP PRO", &[
-            ("Version", "1.0.0"),
-            ("Data Size", &format_memory(app_size)),
-        ]));
+        // Custom APP PRO section with Interactive Updater
+        let app_frame = Frame::new(None);
+        app_frame.set_css_classes(&["info-section"]);
+
+        let app_card = Box::new(gtk4::Orientation::Vertical, 0);
+        app_card.set_css_classes(&["info-section-card"]);
+
+        let app_title = Label::new(Some("APP PRO"));
+        app_title.set_css_classes(&["info-section-title"]);
+        app_title.set_halign(gtk4::Align::Start);
+        app_title.set_margin_start(10);
+        app_title.set_margin_end(10);
+        app_title.set_margin_top(10);
+        app_card.append(&app_title);
+
+        let app_inner = Box::new(gtk4::Orientation::Vertical, 0);
+        app_inner.set_margin_start(10);
+        app_inner.set_margin_end(10);
+        app_inner.set_margin_bottom(8);
+
+        // Version Row
+        let ver_row = Box::new(gtk4::Orientation::Horizontal, 0);
+        ver_row.set_css_classes(&["info-row"]);
+        ver_row.set_margin_top(5);
+        ver_row.set_margin_bottom(5);
+
+        let ver_key = Label::new(Some("Version"));
+        ver_key.set_css_classes(&["info-key"]);
+        ver_key.set_halign(gtk4::Align::Start);
+        ver_key.set_hexpand(true);
+
+        let ver_val = Label::new(Some(env!("CARGO_PKG_VERSION")));
+        ver_val.set_css_classes(&["info-value"]);
+        ver_val.set_halign(gtk4::Align::End);
+
+        ver_row.append(&ver_key);
+        ver_row.append(&ver_val);
+        app_inner.append(&ver_row);
+
+        let sep1 = Box::new(gtk4::Orientation::Horizontal, 0);
+        sep1.set_css_classes(&["info-separator"]);
+        app_inner.append(&sep1);
+
+        // Data Size Row
+        let size_row = Box::new(gtk4::Orientation::Horizontal, 0);
+        size_row.set_css_classes(&["info-row"]);
+        size_row.set_margin_top(5);
+        size_row.set_margin_bottom(5);
+
+        let size_key = Label::new(Some("Data Size"));
+        size_key.set_css_classes(&["info-key"]);
+        size_key.set_halign(gtk4::Align::Start);
+        size_key.set_hexpand(true);
+
+        let size_val = Label::new(Some(&format_memory(app_size)));
+        size_val.set_css_classes(&["info-value"]);
+        size_val.set_halign(gtk4::Align::End);
+
+        size_row.append(&size_key);
+        size_row.append(&size_val);
+        app_inner.append(&size_row);
+
+        let sep2 = Box::new(gtk4::Orientation::Horizontal, 0);
+        sep2.set_css_classes(&["info-separator"]);
+        app_inner.append(&sep2);
+
+        // Update Controller UI
+        let update_row = Box::new(gtk4::Orientation::Horizontal, 10);
+        update_row.set_margin_top(8);
+        update_row.set_margin_bottom(4);
+
+        let check_btn = gtk4::Button::with_label("Check for Updates");
+        check_btn.set_css_classes(&["primary-button"]);
+        check_btn.set_valign(gtk4::Align::Center);
+
+        let update_status = Label::new(None);
+        update_status.set_css_classes(&["app-meta"]);
+        update_status.set_halign(gtk4::Align::Start);
+        update_status.set_hexpand(true);
+        update_status.set_wrap(true);
+        update_status.set_max_width_chars(35);
+
+        update_row.append(&check_btn);
+        update_row.append(&update_status);
+        app_inner.append(&update_row);
+
+        app_card.append(&app_inner);
+        app_frame.set_child(Some(&app_card));
+        content.append(&app_frame);
+
+        enum UpdateMessage {
+            Checking,
+            NoUpdate,
+            UpdateAvailable(crate::updater::ReleaseInfo),
+            CheckFailed(String),
+            Installing,
+            UpdateSuccess,
+            UpdateFailed(String),
+        }
+
+        let current_version = env!("CARGO_PKG_VERSION");
+        let update_state = std::sync::Arc::new(std::sync::Mutex::new(None));
+
+        let btn_clone = check_btn.clone();
+        let status_clone = update_status.clone();
+        let state_clone = update_state.clone();
+
+        // Setup Main Thread channel receiver using std::sync::mpsc and glib timeout polling
+        let (sender, receiver) = std::sync::mpsc::channel();
+        
+        gtk4::glib::timeout_add_local(std::time::Duration::from_millis(50), move || {
+            while let Ok(msg) = receiver.try_recv() {
+                match msg {
+                    UpdateMessage::Checking => {
+                        status_clone.set_text("Checking for updates...");
+                        btn_clone.set_sensitive(false);
+                    }
+                    UpdateMessage::NoUpdate => {
+                        status_clone.set_text("App Pro is up to date.");
+                        btn_clone.set_label("Check for Updates");
+                        btn_clone.set_sensitive(true);
+                    }
+                    UpdateMessage::UpdateAvailable(release) => {
+                        status_clone.set_text(&format!("New version {} available!", release.tag_name));
+                        btn_clone.set_label("Install Update");
+                        btn_clone.set_sensitive(true);
+                        let mut guard = state_clone.lock().unwrap();
+                        *guard = Some(release);
+                    }
+                    UpdateMessage::CheckFailed(err) => {
+                        status_clone.set_text(&format!("Check failed: {}", err));
+                        btn_clone.set_label("Check for Updates");
+                        btn_clone.set_sensitive(true);
+                    }
+                    UpdateMessage::Installing => {
+                        status_clone.set_text("Installing update... Please wait.");
+                        btn_clone.set_sensitive(false);
+                    }
+                    UpdateMessage::UpdateSuccess => {
+                        status_clone.set_text("Update successful! Restart the application to apply.");
+                        btn_clone.set_label("Restart Required");
+                        btn_clone.set_sensitive(false);
+                    }
+                    UpdateMessage::UpdateFailed(err) => {
+                        status_clone.set_text(&format!("Update failed: {}", err));
+                        btn_clone.set_label("Check for Updates");
+                        btn_clone.set_sensitive(true);
+                    }
+                }
+            }
+            gtk4::glib::ControlFlow::Continue
+        });
+
+        let sender_clone = sender.clone();
+        let state_clone2 = update_state.clone();
+
+        check_btn.connect_clicked(move |_| {
+            let mut state_guard = state_clone2.lock().unwrap();
+            if let Some(release) = state_guard.take() {
+                let tx = sender_clone.clone();
+                tx.send(UpdateMessage::Installing).ok();
+                std::thread::spawn(move || {
+                    match crate::updater::perform_update(&release) {
+                        Ok(_) => {
+                            tx.send(UpdateMessage::UpdateSuccess).ok();
+                        }
+                        Err(e) => {
+                            tx.send(UpdateMessage::UpdateFailed(e)).ok();
+                        }
+                    }
+                });
+            } else {
+                let tx = sender_clone.clone();
+                let version_str = current_version.to_string();
+                tx.send(UpdateMessage::Checking).ok();
+                std::thread::spawn(move || {
+                    match crate::updater::check_for_updates(&version_str) {
+                        Ok(Some(release)) => {
+                            tx.send(UpdateMessage::UpdateAvailable(release)).ok();
+                        }
+                        Ok(None) => {
+                            tx.send(UpdateMessage::NoUpdate).ok();
+                        }
+                        Err(e) => {
+                            tx.send(UpdateMessage::CheckFailed(e)).ok();
+                        }
+                    }
+                });
+            }
+        });
 
         scrolled.set_child(Some(&content));
         container.append(&scrolled);

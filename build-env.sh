@@ -10,4 +10,4 @@ export CFLAGS="-I/tmp/sysroot/usr/include -I/tmp/sysroot/usr/include/glib-2.0 -I
 export BINDGEN_EXTRA_CLANG_ARGS="$CFLAGS"
 export RUSTFLAGS="-L /tmp/sysroot-lib"
 
-exec cargo "$@"
+exec /home/kali/.cargo/bin/cargo "$@"

@@ -4,20 +4,38 @@ Linux system utility — install apps (.deb, .AppImage, .zip), uninstall, manage
 
 ## Install
 
+### One-line Installer Command
+Install the latest release automatically (detects system architecture: x86_64 or arm64):
 ```bash
-curl -LO https://github.com/the-shoaib2/app-pro/releases/latest/download/app-pro-linux-x86_64
-chmod +x app-pro-linux-x86_64
-sudo install -m 755 app-pro-linux-x86_64 /usr/local/bin/app-pro
-app-pro
+curl -fsSL https://raw.githubusercontent.com/the-shoaib2/app-pro/main/install.sh | sudo bash
 ```
 
-Or build from source:
-
+### Or build from source:
 ```bash
+# 1. Install GTK4 dependencies
 sudo apt install libgtk-4-dev libgraphene-1.0-dev libvulkan-dev
+
+# 2. Build the project
 cargo build --release
-./target/release/app-pro
+
+# 3. Install locally
+sudo ./install.sh ./target/release/app-pro
 ```
+
+## Uninstallation
+To completely remove App Pro from your system:
+```bash
+curl -fsSL https://raw.githubusercontent.com/the-shoaib2/app-pro/main/uninstall.sh | sudo bash
+```
+Or if you have the source tree:
+```bash
+sudo ./uninstall.sh
+```
+
+## Auto-Update System
+App Pro supports safe and secure auto-updates using the GitHub Releases API.
+* **CLI update**: Run `app-pro update` in the terminal to inspect release notes and download/install the latest version.
+* **GUI update**: Click the **Check for Updates** button in the **System Info** tab to check and install updates right from the dashboard.
 
 ## Usage
 
