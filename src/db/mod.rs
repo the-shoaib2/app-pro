@@ -41,6 +41,12 @@ impl AppDatabase {
         Ok(db)
     }
 
+    pub fn new_from_conn(conn: Connection) -> Self {
+        let db = AppDatabase { conn: Mutex::new(conn) };
+        db.initialize_tables().ok();
+        db
+    }
+
     fn get_db_path() -> PathBuf {
         let data_dir = dirs::data_dir()
             .unwrap_or_else(|| PathBuf::from("/tmp"));

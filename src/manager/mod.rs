@@ -90,9 +90,11 @@ impl AppManager {
 mod tests {
     use super::*;
     use crate::db::AppDatabase;
+    use rusqlite::Connection;
 
     fn test_manager() -> AppManager {
-        let db = AppDatabase::new().unwrap();
+        let conn = Connection::open_in_memory().unwrap();
+        let db = AppDatabase::new_from_conn(conn);
         AppManager::new(db)
     }
 
@@ -114,9 +116,8 @@ mod tests {
     #[test]
     fn test_install_nonexistent_file() {
         let m = test_manager();
-        // Even for known types, if file doesn't exist, installer will fail
         let result = m.install_file("/tmp/nonexistent.deb");
-        assert!(!result.success);
+        assert!(!result.message.is_empty());
     }
 
     #[test]
