@@ -31,12 +31,6 @@
 curl -fsSL https://raw.githubusercontent.com/the-shoaib2/app-pro/main/install.sh | sudo bash
 ```
 
-### Build from Source
-```bash
-sudo apt update && sudo apt install -y libgtk-4-dev libgraphene-1.0-dev libvulkan-dev libmount-dev libseccomp-dev
-cargo build --release && sudo ./install.sh ./target/release/app-pro
-```
-
 ---
 
 ## 🛠️ Usage
