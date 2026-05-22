@@ -48,6 +48,6 @@ curl -fsSL https://raw.githubusercontent.com/the-shoaib2/app-pro/main/uninstall.
 ---
 
 ## ⚖️ License
-MIT
+[MIT](LICENSE)
 
 
