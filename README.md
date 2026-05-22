@@ -34,7 +34,7 @@ curl -fsSL https://raw.githubusercontent.com/the-shoaib2/app-pro/main/install.sh
 ---
 
 <p align="center">
-  <img src="assets/screenshot.png" alt="App Pro Dashboard Mockup" width="600" />
+  <img src="assets/screenshot.png" alt="App Pro" width="600" />
 </p>
 
 ---
