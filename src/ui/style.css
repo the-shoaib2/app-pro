@@ -112,6 +112,47 @@ scrolledwindow {
     color: alpha(@theme_dim_label_color, 0.5);
 }
 
+/* ── File Info ── */
+.file-info {
+    background-color: alpha(@theme_selected_bg_color, 0.04);
+    border-radius: 10px;
+    padding: 8px 12px;
+}
+
+.file-info-icon {
+    font-size: 24px;
+    padding: 0 4px;
+}
+
+.file-info-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: @theme_fg_color;
+}
+
+.file-info-path {
+    font-size: 10px;
+    color: @theme_dim_label_color;
+    font-family: monospace;
+}
+
+/* ── Install Progress ── */
+.install-progress {
+    margin: 4px 0;
+    min-height: 18px;
+    border-radius: 9px;
+}
+
+.install-progress trough {
+    border-radius: 9px;
+    min-height: 18px;
+}
+
+.install-progress progress {
+    border-radius: 9px;
+    background-color: @theme_selected_bg_color;
+}
+
 /* ── File Entry ── */
 .file-entry {
     border-radius: 8px;
@@ -216,6 +257,61 @@ button {
 
 .app-meta {
     font-size: 10px;
+    color: @theme_dim_label_color;
+}
+
+/* ── Filter Bar ── */
+.filter-bar {
+    background-color: transparent;
+}
+
+.filter-button {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 10px;
+    border-radius: 14px;
+    background-color: alpha(@theme_dim_label_color, 0.06);
+    color: @theme_dim_label_color;
+    border: none;
+    min-height: 22px;
+}
+
+.filter-button:hover {
+    background-color: alpha(@theme_selected_bg_color, 0.1);
+    color: @theme_fg_color;
+}
+
+.filter-active {
+    background-color: @theme_selected_bg_color;
+    color: @theme_selected_fg_color;
+    font-weight: 600;
+}
+
+.filter-active:hover {
+    background-color: shade(@theme_selected_bg_color, 1.1);
+}
+
+/* ── Origin Badges ── */
+.origin-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 8px;
+    letter-spacing: 0.3px;
+}
+
+.badge-pro {
+    background-color: alpha(@theme_selected_bg_color, 0.15);
+    color: @theme_selected_bg_color;
+}
+
+.badge-user {
+    background-color: alpha(#2ecc71, 0.15);
+    color: #27ae60;
+}
+
+.badge-system {
+    background-color: alpha(@theme_dim_label_color, 0.1);
     color: @theme_dim_label_color;
 }
 

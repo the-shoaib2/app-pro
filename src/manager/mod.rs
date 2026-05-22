@@ -1,4 +1,5 @@
 pub mod processes;
+pub mod desktop_scanner;
 
 use crate::db::{AppDatabase, AppEntry};
 use crate::installer::{InstallResult, InstallType};
@@ -35,7 +36,6 @@ impl AppManager {
             }
         };
 
-        // Record in database if successful
         if result.success {
             let app_entry = AppEntry {
                 id: uuid::Uuid::new_v4().to_string(),
@@ -79,6 +79,11 @@ impl AppManager {
 
     pub fn get_installed_apps(&self) -> Vec<AppEntry> {
         self.db.get_all_apps().unwrap_or_default()
+    }
+
+    pub fn scan_all_desktop_apps(&self) -> Vec<desktop_scanner::DesktopAppInfo> {
+        let pro_apps = self.get_installed_apps();
+        desktop_scanner::scan_desktop_apps(&pro_apps)
     }
 
     #[allow(dead_code)]
