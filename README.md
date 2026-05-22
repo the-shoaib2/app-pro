@@ -33,13 +33,9 @@ curl -fsSL https://raw.githubusercontent.com/the-shoaib2/app-pro/main/install.sh
 
 ---
 
-## 🛠️ Usage
-
-```bash
-app-pro                  # Launch GUI
-app-pro <file_path>      # Pre-select a file to install
-app-pro update           # Perform auto-update via CLI
-```
+<p align="center">
+  <img src="assets/screenshot.png" alt="App Pro Dashboard Mockup" width="600" />
+</p>
 
 ---
 
