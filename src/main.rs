@@ -42,31 +42,31 @@ fn main() {
         match first_arg {
             "update" => {
                 let current_ver = env!("CARGO_PKG_VERSION");
-                println!("Checking for updates... (Current version: {})", current_ver);
+                println!("App Pro v{}", current_ver);
+                println!("Checking for updates...");
                 match updater::check_for_updates(current_ver) {
                     Ok(Some(release)) => {
-                        println!("New release found: {}", release.tag_name);
+                        println!("New version available: {}", release.tag_name);
                         if let Some(body) = &release.body {
-                            println!("\nRelease Notes:\n{}", body);
+                            println!("\n{}", body);
                         }
-                        println!("\nUpdating App Pro...");
                         match updater::perform_update(&release) {
                             Ok(_) => {
-                                println!("Update completed successfully! Please restart App Pro.");
+                                println!("\n✓ Update complete! Restart App Pro to use the new version.");
                                 std::process::exit(0);
                             }
                             Err(e) => {
-                                eprintln!("Update failed: {}", e);
+                                eprintln!("\n✗ Update failed: {}", e);
                                 std::process::exit(1);
                             }
                         }
                     }
                     Ok(None) => {
-                        println!("App Pro is already up to date.");
+                        println!("✓ You're up to date!");
                         std::process::exit(0);
                     }
                     Err(e) => {
-                        eprintln!("Error checking for updates: {}", e);
+                        eprintln!("✗ Error: {}", e);
                         std::process::exit(1);
                     }
                 }
