@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 use crate::db::AppEntry;
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct DesktopAppInfo {
     pub name: String,
     pub exec: String,

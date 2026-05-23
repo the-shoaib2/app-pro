@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 pub struct ReleaseInfo {
     pub tag_name: String,
+    #[allow(dead_code)]
     pub name: String,
     pub body: Option<String>,
     pub download_url: String,

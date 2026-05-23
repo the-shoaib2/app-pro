@@ -7,6 +7,7 @@ use std::sync::Arc;
 use crate::installer::InstallResult;
 use crate::manager::AppManager;
 
+#[allow(dead_code)]
 pub struct InstallPage {
     pub container: Box,
     file_path_entry: std::rc::Rc<std::cell::RefCell<String>>,
