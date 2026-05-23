@@ -45,10 +45,10 @@ impl InstallPage {
         card.set_css_classes(&["install-card"]);
 
         let card_box = Box::new(gtk4::Orientation::Vertical, 0);
-        card_box.set_margin_start(12);
-        card_box.set_margin_end(12);
-        card_box.set_margin_top(12);
-        card_box.set_margin_bottom(12);
+        card_box.set_margin_start(10);
+        card_box.set_margin_end(10);
+        card_box.set_margin_top(10);
+        card_box.set_margin_bottom(10);
 
         let drop_zone = Frame::new(None);
         drop_zone.set_css_classes(&["drop-zone"]);
@@ -107,15 +107,10 @@ impl InstallPage {
         progress_bar.set_visible(false);
         card_box.append(&progress_bar);
 
-        let sep = Frame::new(None);
-        sep.set_css_classes(&["install-separator"]);
-        sep.set_margin_top(20);
-        sep.set_margin_bottom(12);
-        sep.set_size_request(-1, 1);
-        card_box.append(&sep);
-
         let action_box = Box::new(gtk4::Orientation::Horizontal, 8);
         action_box.set_halign(gtk4::Align::Center);
+        action_box.set_margin_top(8);
+        action_box.set_margin_bottom(4);
 
         let install_button = Button::with_label("Install");
         install_button.set_css_classes(&["primary-button"]);
@@ -213,24 +208,31 @@ impl InstallPage {
             let ob2 = ob.clone();
             let name = installed_name.clone();
 
-            glib::timeout_add_local(std::time::Duration::from_millis(100), move || {
+            glib::timeout_add_local(std::time::Duration::from_millis(80), move || {
                 if let Ok(result) = rx.lock().unwrap().try_recv() {
-                    pb2.set_fraction(1.0);
-                    pb2.set_text(Some("Done ✓"));
-                    status2.set_text(&result.message);
-                    ib2.set_sensitive(true);
-                    ib2.set_visible(false);
-                    *name.borrow_mut() = result.app_name.clone();
-                    ob2.set_visible(true);
-                    glib::ControlFlow::Break
+                    let current = pb2.fraction();
+                    if current < 0.95 {
+                        let next = (current + 0.08).min(1.0);
+                        pb2.set_fraction(next);
+                        pb2.set_text(Some(&format!("Installing... {}%", (next * 100.0) as i32)));
+                        glib::ControlFlow::Continue
+                    } else {
+                        pb2.set_fraction(1.0);
+                        pb2.set_text(Some("Done ✓"));
+                        status2.set_text(&result.message);
+                        ib2.set_sensitive(true);
+                        ib2.set_visible(false);
+                        *name.borrow_mut() = result.app_name.clone();
+                        ob2.set_visible(true);
+                        glib::ControlFlow::Break
+                    }
                 } else {
                     let frac = pb2.fraction();
-                    if frac < 0.1 {
-                        pb2.set_fraction(0.1);
-                    } else if frac < 0.8 {
-                        pb2.set_fraction((frac + 0.07).min(0.8));
+                    if frac < 0.85 {
+                        pb2.set_fraction((frac + 0.05).min(0.85));
                     }
-                    pb2.set_text(Some(&format!("Installing... {}%", (pb2.fraction() * 100.0) as i32)));
+                    let pct = (pb2.fraction() * 100.0) as i32;
+                    pb2.set_text(Some(&format!("Installing... {}%", pct)));
                     glib::ControlFlow::Continue
                 }
             });

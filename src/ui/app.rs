@@ -1,5 +1,5 @@
 use gtk4::prelude::*;
-use gtk4::{self, Application, ApplicationWindow, Stack, Box, HeaderBar, Label as GtkLabel};
+use gtk4::{self, Application, ApplicationWindow, Stack, Box};
 use std::sync::Arc;
 
 use crate::manager::AppManager;
@@ -61,14 +61,7 @@ impl AppProUI {
             }
         });
 
-        let header_bar = HeaderBar::new();
-        header_bar.set_show_title_buttons(true);
-        let title_widget = GtkLabel::new(Some("App Pro - System Utility"));
-        title_widget.set_css_classes(&["window-title"]);
-        header_bar.set_title_widget(Some(&title_widget));
-
         let layout = Box::new(gtk4::Orientation::Vertical, 0);
-        layout.append(&header_bar);
         layout.append(sidebar.widget());
         layout.append(&main_stack);
         main_stack.set_vexpand(true);

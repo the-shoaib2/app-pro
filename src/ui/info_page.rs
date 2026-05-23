@@ -2,8 +2,6 @@ use gtk4::prelude::*;
 use gtk4::{self, Box, Label, Frame};
 use std::path::Path;
 
-use crate::cleaner::cache::CacheAnalyzer;
-
 pub struct InfoPage {
     pub container: Box,
 }
@@ -69,13 +67,6 @@ impl InfoPage {
                 ("Usage", &format!("{}%", pct)),
             ]));
         }
-
-        let cache_size = CacheAnalyzer::get_user_cache_size();
-        let apt_cache = CacheAnalyzer::get_apt_cache_size();
-        content.append(&Self::section("CACHES", &[
-            ("User Cache", &format_memory(cache_size)),
-            ("APT Cache", &format_memory(apt_cache)),
-        ]));
 
         let app_dir = dirs::data_dir()
             .unwrap_or_else(|| Path::new("/tmp").to_path_buf())

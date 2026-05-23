@@ -11,8 +11,6 @@ use gtk4::Application;
 use std::env;
 
 fn main() {
-    // Suppress GTK theme asset warnings (Kali's adw-gtk3-dark theme has missing assets)
-    std::env::set_var("GTK_DEBUG", "discard-theme");
     env_logger::init();
 
     // Initialize database
