@@ -2,6 +2,8 @@ name: Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
 
@@ -54,9 +56,10 @@ jobs:
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        name: App Pro Release ${{ github.ref_name }}
+        tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'latest' }}
+        name: ${{ startsWith(github.ref, 'refs/tags/v') && format('App Pro Release {0}', github.ref_name) || 'App Pro Latest Build' }}
         draft: false
-        prerelease: false
+        prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         generate_release_notes: true
         files: |
           dist/app-pro-linux-x86_64

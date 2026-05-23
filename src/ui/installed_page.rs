@@ -5,7 +5,7 @@ use std::sync::Arc;
 use crate::manager::AppManager;
 use crate::manager::desktop_scanner::{DesktopAppInfo, AppOrigin};
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 enum Filter {
     All,
     User,
@@ -18,6 +18,7 @@ pub struct InstalledAppsPage {
     status_label: Label,
     manager: Arc<AppManager>,
     filter: std::rc::Rc<std::cell::RefCell<Filter>>,
+    search_query: std::rc::Rc<std::cell::RefCell<String>>,
 }
 
 impl InstalledAppsPage {
@@ -55,6 +56,18 @@ impl InstalledAppsPage {
         filter_bar.append(&all_btn);
         filter_bar.append(&user_btn);
         filter_bar.append(&pro_btn);
+
+        // Spacer to push search entry to the right
+        let spacer = Box::new(gtk4::Orientation::Horizontal, 0);
+        spacer.set_hexpand(true);
+        filter_bar.append(&spacer);
+
+        // Search Entry
+        let search_entry = gtk4::SearchEntry::new();
+        search_entry.set_placeholder_text(Some("Search installed apps..."));
+        search_entry.set_width_request(180);
+        filter_bar.append(&search_entry);
+
         container.append(&filter_bar);
 
         let scrolled = ScrolledWindow::new();
@@ -71,15 +84,33 @@ impl InstalledAppsPage {
         container.append(&status_label);
 
         let filter = std::rc::Rc::new(std::cell::RefCell::new(Filter::AppPro));
+        let search_query = std::rc::Rc::new(std::cell::RefCell::new(String::new()));
 
         let list = list_box.clone();
         let status = status_label.clone();
         let mgr = manager.clone();
         let filt = filter.clone();
+        let query_ref = search_query.clone();
 
         refresh_button.connect_clicked(move |_| {
             let f = *filt.borrow();
-            Self::populate_list(&mgr, &list, &status, f);
+            let q = query_ref.borrow();
+            Self::populate_list(&mgr, &list, &status, f, &q);
+        });
+
+        // Search Changed Signal
+        let list_c = list_box.clone();
+        let status_c = status_label.clone();
+        let mgr_c = manager.clone();
+        let filt_c = filter.clone();
+        let query_c = search_query.clone();
+        search_entry.connect_changed(move |entry| {
+            let text = entry.text().to_string();
+            println!("[Search] Query changed: '{}'", text);
+            *query_c.borrow_mut() = text;
+            let f = *filt_c.borrow();
+            let q = query_c.borrow();
+            Self::populate_list(&mgr_c, &list_c, &status_c, f, &q);
         });
 
         let filter_buttons = [all_btn, user_btn, pro_btn];
@@ -94,6 +125,7 @@ impl InstalledAppsPage {
                 filter_buttons[2].clone(),
             ];
             let filt = filter.clone();
+            let query_ref = search_query.clone();
 
             btn.connect_clicked(move |_| {
                 for (j, fb) in fbs.iter().enumerate() {
@@ -109,7 +141,8 @@ impl InstalledAppsPage {
                     _ => Filter::AppPro,
                 };
                 *filt.borrow_mut() = f;
-                Self::populate_list(&mgr, &list, &status, f);
+                let q = query_ref.borrow();
+                Self::populate_list(&mgr, &list, &status, f, &q);
             });
         }
 
@@ -119,6 +152,7 @@ impl InstalledAppsPage {
             status_label,
             manager,
             filter,
+            search_query,
         };
 
         page.refresh_list();
@@ -127,28 +161,43 @@ impl InstalledAppsPage {
 
     pub fn refresh_list(&self) {
         let f = *self.filter.borrow();
-        Self::populate_list(&self.manager, &self.list_box, &self.status_label, f);
+        let q = self.search_query.borrow();
+        Self::populate_list(&self.manager, &self.list_box, &self.status_label, f, &q);
     }
 
-    fn populate_list(manager: &Arc<AppManager>, list_box: &ListBox, status: &Label, filter: Filter) {
+    fn populate_list(manager: &Arc<AppManager>, list_box: &ListBox, status: &Label, filter: Filter, query: &str) {
         while let Some(child) = list_box.first_child() {
             list_box.remove(&child);
         }
 
         let apps = manager.scan_all_desktop_apps();
+        let trimmed = query.trim();
+        println!("[Search] populate_list: filter={:?}, query='{}', total_scanned={}", filter, trimmed, apps.len());
 
-        let filtered: Vec<&DesktopAppInfo> = match filter {
+        let mut filtered: Vec<&DesktopAppInfo> = match filter {
             Filter::All => apps.iter().collect(),
             Filter::User => apps.iter().filter(|a| a.origin != AppOrigin::System).collect(),
             Filter::AppPro => apps.iter().filter(|a| matches!(a.origin, AppOrigin::AppPro)).collect(),
         };
 
+        if !trimmed.is_empty() {
+            let q = trimmed.to_lowercase();
+            filtered.retain(|a| {
+                a.name.to_lowercase().contains(&q)
+                    || a.comment.as_ref().map(|c| c.to_lowercase().contains(&q)).unwrap_or(false)
+            });
+        }
+
         if filtered.is_empty() {
             let row = ListBoxRow::new();
-            let label = Label::new(Some(match filter {
-                Filter::All => "No applications found.",
-                Filter::User => "No user-installed applications found.",
-                Filter::AppPro => "No applications installed via App Pro yet.",
+            let label = Label::new(Some(if !query.is_empty() {
+                "No matching applications found."
+            } else {
+                match filter {
+                    Filter::All => "No applications found.",
+                    Filter::User => "No user-installed applications found.",
+                    Filter::AppPro => "No applications installed via App Pro yet.",
+                }
             }));
             label.set_margin_top(20);
             label.set_margin_bottom(20);
@@ -216,11 +265,12 @@ impl InstalledAppsPage {
                     let mgr = manager.clone();
                     let list = list_box.clone();
                     let s = status.clone();
+                    let query_str = query.to_string();
                     action_btn.connect_clicked(move |_| {
                         s.set_text(&format!("Uninstalling {}...", db_app.name));
                         let result = mgr.uninstall_app(&db_app);
                         s.set_text(&result.message);
-                        Self::populate_list(&mgr, &list, &s, filter);
+                        Self::populate_list(&mgr, &list, &s, filter, &query_str);
                     });
                 }
             } else {

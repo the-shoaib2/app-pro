@@ -7,7 +7,7 @@ use std::fs;
 pub struct AppImageInstaller;
 
 impl AppImageInstaller {
-    pub fn install<P: AsRef<Path>>(path: P) -> InstallResult {
+    pub fn install<P: AsRef<Path>>(path: P, log_tx: Option<std::sync::mpsc::Sender<String>>) -> InstallResult {
         let path = path.as_ref();
         let filename = path.file_name()
             .and_then(|s| s.to_str())
@@ -20,11 +20,20 @@ impl AppImageInstaller {
 
         log::info!("Installing AppImage: {} -> {}", path.display(), target_path.display());
 
+        if let Some(ref tx) = log_tx {
+            tx.send(format!("Starting installation of AppImage: {}", app_name)).ok();
+            tx.send(format!("Creating application directory: {}", app_dir.display())).ok();
+        }
+
         // Create app directory
         if let Err(e) = fs::create_dir_all(&app_dir) {
+            let err_msg = format!("Failed to create app directory: {}", e);
+            if let Some(ref tx) = log_tx {
+                tx.send(err_msg.clone()).ok();
+            }
             return InstallResult {
                 success: false,
-                message: format!("Failed to create app directory: {}", e),
+                message: err_msg,
                 app_name,
                 install_path: String::new(),
                 icon_path: None,
@@ -33,25 +42,41 @@ impl AppImageInstaller {
             };
         }
 
+        if let Some(ref tx) = log_tx {
+            tx.send(format!("Copying AppImage binary to apps folder: {}", target_path.display())).ok();
+        }
+
         // Copy AppImage to apps directory
         if let Err(e) = fs::copy(path, &target_path) {
+            let err_msg = format!("Failed to copy AppImage: {}", e);
+            if let Some(ref tx) = log_tx {
+                tx.send(err_msg.clone()).ok();
+            }
             return InstallResult {
                 success: false,
-                message: format!("Failed to copy AppImage: {}", e),
+                message: err_msg,
                 app_name,
                 install_path: String::new(),
                 icon_path: None,
                 version: None,
                 size_bytes: 0,
             };
+        }
+
+        if let Some(ref tx) = log_tx {
+            tx.send("Setting executable permissions (0755) on AppImage...".to_string()).ok();
         }
 
         // Make executable
         use std::os::unix::fs::PermissionsExt;
         if let Err(e) = fs::set_permissions(&target_path, fs::Permissions::from_mode(0o755)) {
+            let err_msg = format!("Failed to set permissions: {}", e);
+            if let Some(ref tx) = log_tx {
+                tx.send(err_msg.clone()).ok();
+            }
             return InstallResult {
                 success: false,
-                message: format!("Failed to set permissions: {}", e),
+                message: err_msg,
                 app_name,
                 install_path: target_path.to_string_lossy().to_string(),
                 icon_path: None,
@@ -60,8 +85,16 @@ impl AppImageInstaller {
             };
         }
 
+        if let Some(ref tx) = log_tx {
+            tx.send("Extracting embedded icon from AppImage...".to_string()).ok();
+        }
+
         // Extract icon from AppImage if possible
         let icon_path = Self::extract_icon(&target_path, &app_name);
+
+        if let Some(ref tx) = log_tx {
+            tx.send("Creating desktop application launcher entry...".to_string()).ok();
+        }
 
         // Create .desktop entry
         let desktop_result = Self::create_desktop_entry(&app_name, &target_path, &icon_path);
@@ -73,6 +106,11 @@ impl AppImageInstaller {
             Ok(_) => format!("Successfully installed {}", app_name),
             Err(e) => format!("Installed {} but desktop entry creation failed: {}", app_name, e),
         };
+
+        if let Some(ref tx) = log_tx {
+            tx.send(message.clone()).ok();
+            tx.send(format!("Installation of {} finished!", app_name)).ok();
+        }
 
         InstallResult {
             success: true,
@@ -141,7 +179,7 @@ impl AppImageInstaller {
             .join(format!("app-pro-{}.desktop", app_name))
     }
 
-    fn extract_name(filename: &str) -> String {
+    pub(crate) fn extract_name(filename: &str) -> String {
         let name = filename
             .replace(".AppImage", "")
             .replace("-x86_64", "")

@@ -36,7 +36,6 @@ scrolledwindow {
     border-bottom: 2px solid transparent;
     min-height: 22px;
     transition: all 150ms ease;
-    cursor: pointer;
 }
 
 .tab-button:hover {
@@ -75,7 +74,7 @@ scrolledwindow {
 /* ── Install Card ── */
 .install-card {
     background-color: @theme_base_color;
-    border: 1px solid @borders;
+    border: none;
     border-radius: 12px;
 }
 
@@ -134,19 +133,21 @@ scrolledwindow {
 }
 
 /* ── Install Progress ── */
+/* ── Install Progress ── */
 .install-progress {
     margin: 4px 0;
-    min-height: 18px;
-    border-radius: 9px;
+    min-height: 22px;
+    border-radius: 11px;
 }
 
 .install-progress trough {
-    border-radius: 9px;
-    min-height: 18px;
+    border-radius: 11px;
+    min-height: 22px;
+    background-color: alpha(@theme_dim_label_color, 0.08);
 }
 
 .install-progress progress {
-    border-radius: 9px;
+    border-radius: 11px;
     background-color: @theme_selected_bg_color;
 }
 
@@ -171,11 +172,9 @@ button {
     padding: 4px 12px;
     transition: all 150ms ease;
     min-height: 24px;
-    cursor: pointer;
 }
 
 frame, .drop-zone, list, row {
-    cursor: pointer;
 }
 
 .action-button {
@@ -197,6 +196,21 @@ frame, .drop-zone, list, row {
 
 .primary-button:hover {
     background-color: shade(@theme_selected_bg_color, 1.1);
+}
+
+.secondary-button {
+    padding: 6px 20px;
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    min-height: 26px;
+}
+
+.secondary-button:hover {
+    background-color: rgba(255, 255, 255, 0.15);
 }
 
 .danger-button {
@@ -276,7 +290,6 @@ frame, .drop-zone, list, row {
     color: @theme_dim_label_color;
     border: none;
     min-height: 22px;
-    cursor: pointer;
 }
 
 .filter-button:hover {
@@ -459,4 +472,116 @@ row:selected {
 
 row:selected label {
     color: @theme_selected_fg_color;
+}
+
+/* ── Progress Bar ── */
+progressbar {
+    background-color: alpha(@theme_dim_label_color, 0.1);
+    border-radius: 4px;
+}
+
+progressbar trough {
+    background-color: transparent;
+}
+
+progressbar progress {
+    background-color: @theme_selected_bg_color;
+    border-radius: 4px;
+}
+
+/* ── Custom Header Bar ── */
+headerbar.custom-headerbar {
+    background-color: @theme_bg_color;
+    border-bottom: 1px solid @borders;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    padding: 6px 12px;
+    min-height: 38px;
+}
+
+.header-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: @theme_fg_color;
+    margin-bottom: 2px;
+}
+
+.header-btn {
+    background: transparent;
+    border: none;
+    color: @theme_fg_color;
+    padding: 4px 8px;
+    margin: 0 2px;
+    border-radius: 4px;
+    box-shadow: none;
+}
+
+.header-btn:hover {
+    background-color: alpha(@theme_selected_bg_color, 0.1);
+    color: @theme_fg_color;
+}
+
+.header-left-icon {
+    opacity: 0.8;
+}
+
+/* Terminal Log Panel */
+.install-log-scroll {
+    margin-top: 12px;
+    border: 1px solid @borders;
+    border-radius: 6px;
+    background-color: @theme_base_color;
+}
+
+.install-log-view {
+    font-family: monospace, Courier, "Courier New";
+    font-size: 11px;
+    background-color: @theme_base_color;
+    color: @theme_fg_color;
+    padding: 8px;
+}
+
+/* Ensure the window title label has the correct color, size, and weight */
+.header-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: #c1c4cd;
+    margin-bottom: 2px;
+}
+
+/* Header action buttons (Search, Menu, Left Icon) */
+.header-btn {
+    background: transparent;
+    border: none;
+    color: #c1c4cd;
+    padding: 4px 8px;
+    margin: 0 2px;
+    border-radius: 4px;
+    box-shadow: none;
+}
+
+.header-btn:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+}
+
+/* Left-most terminal icon button styling */
+.header-left-icon {
+    opacity: 0.8;
+}
+
+/* Terminal Log Panel styling */
+.install-log-scroll {
+    margin-top: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    background-color: #101216;
+}
+
+.install-log-view {
+    font-family: monospace, Courier, "Courier New";
+    font-size: 11px;
+    background-color: #101216;
+    color: #a3be8c; /* Soft green */
+    padding: 8px;
 }

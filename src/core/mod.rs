@@ -128,6 +128,120 @@ impl SystemExec {
         }
         dir_size(path.as_ref()).unwrap_or(0)
     }
+
+    pub fn run_with_pkexec_streaming<F>(script: &str, on_line: F) -> io::Result<ExecResult>
+    where
+        F: FnMut(String) + Send + 'static,
+    {
+        use std::io::{BufRead, BufReader};
+        use std::process::Stdio;
+        use std::sync::{Arc, Mutex};
+
+        let mut child = Command::new("pkexec")
+            .arg("sh")
+            .arg("-c")
+            .arg(script)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?;
+
+        let stdout = child.stdout.take().unwrap();
+        let stderr = child.stderr.take().unwrap();
+
+        let on_line = Arc::new(Mutex::new(on_line));
+
+        let stdout_thread = {
+            let on_line = on_line.clone();
+            std::thread::spawn(move || {
+                let reader = BufReader::new(stdout);
+                for line in reader.lines().flatten() {
+                    if let Ok(mut cb) = on_line.lock() {
+                        cb(line);
+                    }
+                }
+            })
+        };
+
+        let stderr_thread = {
+            let on_line = on_line.clone();
+            std::thread::spawn(move || {
+                let reader = BufReader::new(stderr);
+                for line in reader.lines().flatten() {
+                    if let Ok(mut cb) = on_line.lock() {
+                        cb(line);
+                    }
+                }
+            })
+        };
+
+        let status = child.wait()?;
+        stdout_thread.join().ok();
+        stderr_thread.join().ok();
+
+        Ok(ExecResult {
+            success: status.success(),
+            stdout: String::new(),
+            stderr: String::new(),
+            exit_code: status.code(),
+        })
+    }
+
+    pub fn run_streaming<I, S, F>(cmd: &str, args: I, on_line: F) -> io::Result<ExecResult>
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<OsStr>,
+        F: FnMut(String) + Send + 'static,
+    {
+        use std::io::{BufRead, BufReader};
+        use std::process::Stdio;
+        use std::sync::{Arc, Mutex};
+
+        let mut child = Command::new(cmd)
+            .args(args)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?;
+
+        let stdout = child.stdout.take().unwrap();
+        let stderr = child.stderr.take().unwrap();
+
+        let on_line = Arc::new(Mutex::new(on_line));
+
+        let stdout_thread = {
+            let on_line = on_line.clone();
+            std::thread::spawn(move || {
+                let reader = BufReader::new(stdout);
+                for line in reader.lines().flatten() {
+                    if let Ok(mut cb) = on_line.lock() {
+                        cb(line);
+                    }
+                }
+            })
+        };
+
+        let stderr_thread = {
+            let on_line = on_line.clone();
+            std::thread::spawn(move || {
+                let reader = BufReader::new(stderr);
+                for line in reader.lines().flatten() {
+                    if let Ok(mut cb) = on_line.lock() {
+                        cb(line);
+                    }
+                }
+            })
+        };
+
+        let status = child.wait()?;
+        stdout_thread.join().ok();
+        stderr_thread.join().ok();
+
+        Ok(ExecResult {
+            success: status.success(),
+            stdout: String::new(),
+            stderr: String::new(),
+            exit_code: status.code(),
+        })
+    }
 }
 
 #[cfg(test)]

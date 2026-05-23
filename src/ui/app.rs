@@ -72,6 +72,18 @@ impl AppProUI {
         window.set_resizable(true);
         window.set_child(Some(&layout));
 
+        // Set application icon from assets
+        if let Some(display) = gtk4::gdk::Display::default() {
+            let icon_theme = gtk4::IconTheme::for_display(&display);
+            if let Ok(current_dir) = std::env::current_dir() {
+                icon_theme.add_search_path(current_dir.join("assets"));
+            }
+            icon_theme.add_search_path("/home/kali/Desktop/app-pro/assets");
+            window.set_icon_name(Some("image"));
+        }
+
+
+
         Self::apply_css(&window);
 
         AppProUI {

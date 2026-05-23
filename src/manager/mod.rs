@@ -15,14 +15,14 @@ impl AppManager {
         AppManager { db }
     }
 
-    pub fn install_file<P: AsRef<Path>>(&self, path: P) -> InstallResult {
+    pub fn install_file<P: AsRef<Path>>(&self, path: P, log_tx: Option<std::sync::mpsc::Sender<String>>) -> InstallResult {
         let path = path.as_ref();
         let install_type = InstallType::from_path(path);
 
         let result = match install_type {
-            InstallType::Deb => DebInstaller::install(path),
-            InstallType::AppImage => AppImageInstaller::install(path),
-            InstallType::Zip => ZipInstaller::install(path),
+            InstallType::Deb => DebInstaller::install(path, log_tx),
+            InstallType::AppImage => AppImageInstaller::install(path, log_tx),
+            InstallType::Zip => ZipInstaller::install(path, log_tx),
             InstallType::Unknown => {
                 return InstallResult {
                     success: false,
@@ -114,7 +114,7 @@ mod tests {
     #[test]
     fn test_install_unknown_file() {
         let m = test_manager();
-        let result = m.install_file("/tmp/nonexistent.foo");
+        let result = m.install_file("/tmp/nonexistent.foo", None);
         assert!(!result.success);
         assert!(result.message.contains("Unknown file type"));
     }
@@ -122,7 +122,7 @@ mod tests {
     #[test]
     fn test_install_nonexistent_file() {
         let m = test_manager();
-        let result = m.install_file("/tmp/nonexistent.deb");
+        let result = m.install_file("/tmp/nonexistent.deb", None);
         assert!(!result.message.is_empty());
     }
 

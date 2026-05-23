@@ -6,7 +6,7 @@ use std::path::Path;
 pub struct DebInstaller;
 
 impl DebInstaller {
-    pub fn install<P: AsRef<Path>>(path: P) -> InstallResult {
+    pub fn install<P: AsRef<Path>>(path: P, log_tx: Option<std::sync::mpsc::Sender<String>>) -> InstallResult {
         let path = path.as_ref();
         let _filename = path.file_stem()
             .and_then(|s| s.to_str())
@@ -18,13 +18,33 @@ impl DebInstaller {
 
         log::info!("Installing .deb package: {}", path.display());
 
-        let result = SystemExec::run_with_pkexec(&format!(
+        let accumulated_logs = std::sync::Arc::new(std::sync::Mutex::new(String::new()));
+        let accum_clone = accumulated_logs.clone();
+        let tx_clone = log_tx.clone();
+
+        if let Some(ref tx) = log_tx {
+            tx.send(format!("Starting installation of .deb package: {}", info.0)).ok();
+        }
+
+        let result = SystemExec::run_with_pkexec_streaming(&format!(
             "dpkg -i '{}' 2>&1; if [ $? -ne 0 ]; then apt-get install -f -y 2>&1; fi",
             path.display()
-        ));
+        ), move |line| {
+            if let Ok(mut accum) = accum_clone.lock() {
+                accum.push_str(&line);
+                accum.push('\n');
+            }
+            if let Some(ref tx) = tx_clone {
+                tx.send(line).ok();
+            }
+        });
+
+        let logs = accumulated_logs.lock().unwrap().clone();
 
         match result {
-            Ok(exec) => {
+            Ok(mut exec) => {
+                exec.stdout = logs.clone();
+                exec.stderr = logs;
                 let success = exec.success;
                 let message = if success {
                     format!("Successfully installed {}", info.0)
@@ -92,7 +112,7 @@ impl DebInstaller {
         }
     }
 
-    fn get_deb_info(path: &Path) -> (String, String) {
+    pub(crate) fn get_deb_info(path: &Path) -> (String, String) {
         let name = path.file_stem()
             .and_then(|s| s.to_str())
             .unwrap_or("unknown")
