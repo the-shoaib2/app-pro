@@ -128,30 +128,42 @@ pub fn perform_update(release: &ReleaseInfo) -> Result<(), String> {
         .map_err(|e| format!("Failed to set executable permissions: {}", e))?;
 
     let target_str = target.display();
-    std::fs::rename(&tmp_path, &target)
-        .or_else(|rename_err| {
-            if rename_err.kind() == std::io::ErrorKind::PermissionDenied {
-                return Err(format!(
-                    "Permission denied: run with 'sudo app-pro update' to update {}",
-                    target_str
-                ));
-            }
-            std::fs::copy(&tmp_path, &target)
-                .map(|_| {
+    let result = std::fs::rename(&tmp_path, &target);
+    if let Err(rename_err) = result {
+        if rename_err.kind() == std::io::ErrorKind::PermissionDenied {
+            eprint!("Escalating privileges... ");
+            let pkexec_status = std::process::Command::new("pkexec")
+                .args(["cp", &tmp_path.to_string_lossy(), &target.to_string_lossy()])
+                .status();
+            match pkexec_status {
+                Ok(status) if status.success() => {
                     std::fs::remove_file(&tmp_path).ok();
-                })
+                    eprintln!("done");
+                }
+                _ => {
+                    std::fs::remove_file(&tmp_path).ok();
+                    return Err(format!(
+                        "Permission denied: run 'sudo app-pro update' to update {}",
+                        target_str
+                    ));
+                }
+            }
+        } else {
+            std::fs::copy(&tmp_path, &target)
+                .map(|_| std::fs::remove_file(&tmp_path).ok())
                 .map_err(|copy_err| {
                     std::fs::remove_file(&tmp_path).ok();
                     if copy_err.kind() == std::io::ErrorKind::PermissionDenied {
                         format!(
-                            "Permission denied: run with 'sudo app-pro update' to update {}",
+                            "Permission denied: run 'sudo app-pro update' to update {}",
                             target_str
                         )
                     } else {
                         format!("Failed to install update: {}", copy_err)
                     }
-                })
-        })?;
+                })?;
+        }
+    }
 
     Ok(())
 }
