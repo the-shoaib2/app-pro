@@ -182,6 +182,10 @@ impl InstallPage {
         let ib = install_button.clone();
         let ob = open_button.clone();
         let mgr = manager.clone();
+        let installed_name: std::rc::Rc<std::cell::RefCell<String>> =
+            std::rc::Rc::new(std::cell::RefCell::new(String::new()));
+        let installed_name2 = installed_name.clone();
+        let status2 = status.clone();
 
         install_button.connect_clicked(move |_| {
             let p = path.borrow().clone();
@@ -190,7 +194,7 @@ impl InstallPage {
             }
             ib.set_sensitive(false);
             pb.set_visible(true);
-            pb.set_fraction(0.0);
+            pb.set_fraction(0.05);
             pb.set_text(Some("Installing..."));
 
             let mgr = mgr.clone();
@@ -206,33 +210,43 @@ impl InstallPage {
             let status2 = status.clone();
             let ib2 = ib.clone();
             let ob2 = ob.clone();
+            let name = installed_name.clone();
 
-            glib::timeout_add_local(std::time::Duration::from_millis(120), move || {
+            glib::timeout_add_local(std::time::Duration::from_millis(100), move || {
                 if let Ok(result) = rx.lock().unwrap().try_recv() {
                     pb2.set_fraction(1.0);
                     pb2.set_text(Some("Done ✓"));
                     status2.set_text(&result.message);
                     ib2.set_sensitive(true);
                     ib2.set_visible(false);
+                    *name.borrow_mut() = result.app_name.clone();
                     ob2.set_visible(true);
                     glib::ControlFlow::Break
                 } else {
                     let frac = pb2.fraction();
-                    let next = (frac + 0.07).min(0.9);
-                    pb2.set_fraction(next);
-                    pb2.set_text(Some(&format!("Installing... {}%", (next * 100.0) as i32)));
+                    if frac < 0.1 {
+                        pb2.set_fraction(0.1);
+                    } else if frac < 0.8 {
+                        pb2.set_fraction((frac + 0.07).min(0.8));
+                    }
+                    pb2.set_text(Some(&format!("Installing... {}%", (pb2.fraction() * 100.0) as i32)));
                     glib::ControlFlow::Continue
                 }
             });
         });
 
-        let path = current_path.clone();
-        let mgr = manager.clone();
-        let status = status_label.clone();
         open_button.connect_clicked(move |_| {
-            let p = path.borrow().clone();
-            let result = mgr.install_file(&p);
-            status.set_text(&format!("Launching... {}", result.message));
+            let app_name = installed_name2.borrow().clone();
+            if app_name.is_empty() {
+                status2.set_text("App name not found.");
+                return;
+            }
+            let launched = launch_app(&app_name);
+            if launched {
+                status2.set_text(&format!("Launched {}", app_name));
+            } else {
+                status2.set_text(&format!("Could not launch {}", app_name));
+            }
         });
 
         InstallPage {
@@ -351,4 +365,53 @@ fn select_file_inner(
     install_button.set_visible(true);
     open_button.set_visible(false);
     progress_bar.set_visible(false);
+}
+
+fn launch_app(app_name: &str) -> bool {
+    let search_dirs = [
+        std::path::PathBuf::from("/usr/share/applications"),
+        dirs::data_dir().map(|d| d.join("applications")).unwrap_or_default(),
+        std::path::PathBuf::from(
+            std::env::var("HOME").unwrap_or_default(),
+        )
+        .join(".local/share/applications"),
+    ];
+
+    for dir in &search_dirs {
+        if !dir.exists() {
+            continue;
+        }
+        if let Ok(entries) = std::fs::read_dir(dir) {
+            for entry in entries.flatten() {
+                let p = entry.path();
+                if p.extension().and_then(|e| e.to_str()) != Some("desktop") {
+                    continue;
+                }
+                if let Ok(content) = std::fs::read_to_string(&p) {
+                    for line in content.lines() {
+                        if line.trim().starts_with("Name=") {
+                            let name = line.trim().trim_start_matches("Name=");
+                            if name.eq_ignore_ascii_case(app_name) {
+                                // Launch via gio or gtk-launch
+                                let base = p.file_stem().and_then(|s| s.to_str()).unwrap_or("");
+                                return std::process::Command::new("gtk-launch")
+                                    .arg(base)
+                                    .spawn()
+                                    .is_ok()
+                                    || std::process::Command::new("xdg-open")
+                                        .arg(&p)
+                                        .spawn()
+                                        .is_ok()
+                                    || std::process::Command::new("sh")
+                                        .args(["-c", &format!("nohup '{}' >/dev/null 2>&1 &", p.display())])
+                                        .spawn()
+                                        .is_ok();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    false
 }

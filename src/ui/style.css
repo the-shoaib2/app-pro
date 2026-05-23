@@ -2,6 +2,16 @@ window {
     background-color: @theme_bg_color;
     font-family: "Cantarell", "Noto Sans", -apple-system, sans-serif;
     font-size: 12px;
+    padding: 0;
+}
+
+.window-title {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.content-area {
+    padding: 6px;
 }
 
 frame, .frame, button, entry, .install-card, .drop-zone,
@@ -64,11 +74,6 @@ scrolledwindow {
 .page-description {
     font-size: 11px;
     color: @theme_dim_label_color;
-}
-
-/* ── Content Area ── */
-.content-area {
-    padding: 0;
 }
 
 /* ── Install Card ── */
