@@ -17,6 +17,8 @@ jobs:
     steps:
     - name: Checkout Source Code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Install GTK4 & System Libraries
       run: |
@@ -30,6 +32,35 @@ jobs:
 
     - name: Set up Rust Toolchain
       uses: dtolnay/rust-toolchain@stable
+
+    - name: Auto-Bump Version and Tag (on push to main)
+      if: github.ref == 'refs/heads/main'
+      id: bump_version
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+        VERSION=$(grep -m1 '^version = ' Cargo.toml | cut -d '"' -f2)
+        echo "Current version: $VERSION"
+
+        IFS='.' read -r major minor patch <<< "$VERSION"
+        NEW_PATCH=$((patch + 1))
+        NEW_VERSION="${major}.${minor}.${NEW_PATCH}"
+        echo "New version: $NEW_VERSION"
+
+        sed -i "s/^version = \"$VERSION\"/version = \"$NEW_VERSION\"/" Cargo.toml
+        cargo check
+
+        git add Cargo.toml Cargo.lock
+        git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
+        
+        TAG_NAME="v$NEW_VERSION"
+        git tag "$TAG_NAME"
+        git push origin main
+        git push origin "$TAG_NAME"
+
+        echo "new_tag=$TAG_NAME" >> $GITHUB_OUTPUT
+        echo "is_bumped=true" >> $GITHUB_OUTPUT
 
     - name: Cache Cargo Dependencies
       uses: actions/cache@v4
@@ -56,10 +87,10 @@ jobs:
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'latest' }}
-        name: ${{ startsWith(github.ref, 'refs/tags/v') && format('App Pro Release {0}', github.ref_name) || 'App Pro Latest Build' }}
+        tag_name: ${{ steps.bump_version.outputs.is_bumped == 'true' && steps.bump_version.outputs.new_tag || github.ref_name }}
+        name: App Pro Release ${{ steps.bump_version.outputs.is_bumped == 'true' && steps.bump_version.outputs.new_tag || github.ref_name }}
         draft: false
-        prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        prerelease: false
         generate_release_notes: true
         files: |
           dist/app-pro-linux-x86_64

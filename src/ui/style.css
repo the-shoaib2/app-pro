@@ -140,10 +140,11 @@ scrolledwindow {
     border-radius: 11px;
 }
 
-.install-progress trough {
-    border-radius: 11px;
-    min-height: 22px;
-    background-color: alpha(@theme_dim_label_color, 0.08);
+progressbar.install-progress trough {
+    border-radius: 10px;
+    min-height: 20px;
+    background-color: alpha(@theme_fg_color, 0.08);
+    border: 1px solid alpha(@theme_fg_color, 0.05);
 }
 
 .install-progress progress {
@@ -200,17 +201,17 @@ frame, .drop-zone, list, row {
 
 .secondary-button {
     padding: 6px 20px;
-    background-color: rgba(255, 255, 255, 0.08);
-    color: #ffffff;
+    background-color: alpha(@theme_fg_color, 0.08);
+    color: @theme_fg_color;
     font-weight: 600;
     font-size: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid alpha(@theme_fg_color, 0.12);
     border-radius: 8px;
     min-height: 26px;
 }
 
 .secondary-button:hover {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: alpha(@theme_fg_color, 0.15);
 }
 
 .danger-button {
@@ -573,7 +574,7 @@ headerbar.custom-headerbar {
 /* Terminal Log Panel styling */
 .install-log-scroll {
     margin-top: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid alpha(@theme_fg_color, 0.08);
     border-radius: 6px;
     background-color: #101216;
 }

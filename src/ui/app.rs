@@ -81,8 +81,12 @@ impl AppProUI {
             icon_theme.add_search_path("/home/kali/Desktop/app-pro/assets");
             window.set_icon_name(Some("image"));
         }
+        Self::setup_theme_sync();
 
-
+        // Follow system dark theme preference
+        if let Some(settings) = gtk4::Settings::default() {
+            settings.set_gtk_application_prefer_dark_theme(true);
+        }
 
         Self::apply_css(&window);
 
@@ -115,6 +119,92 @@ impl AppProUI {
                 &provider,
                 gtk4::STYLE_PROVIDER_PRIORITY_APPLICATION,
             );
+        }
+    }
+
+    fn is_system_dark_mode() -> bool {
+        // 1. Try reading from GSettings interface schema if available
+        let schema_exists = gtk4::gio::SettingsSchemaSource::default()
+            .and_then(|source| source.lookup("org.gnome.desktop.interface", true))
+            .is_some();
+
+        if schema_exists {
+            let settings = gtk4::gio::Settings::new("org.gnome.desktop.interface");
+            let color_scheme = settings.string("color-scheme");
+            if color_scheme.contains("dark") {
+                return true;
+            }
+            let theme_name = settings.string("gtk-theme");
+            if theme_name.to_lowercase().contains("dark") {
+                return true;
+            }
+        }
+
+        // 2. Fallback to executing gsettings CLI commands
+        if let Ok(output) = std::process::Command::new("gsettings")
+            .args(["get", "org.gnome.desktop.interface", "color-scheme"])
+            .output()
+        {
+            let scheme = String::from_utf8_lossy(&output.stdout).to_lowercase();
+            if scheme.contains("dark") {
+                return true;
+            }
+        }
+
+        if let Ok(output) = std::process::Command::new("gsettings")
+            .args(["get", "org.gnome.desktop.interface", "gtk-theme"])
+            .output()
+        {
+            let theme = String::from_utf8_lossy(&output.stdout).to_lowercase();
+            if theme.contains("dark") {
+                return true;
+            }
+        }
+
+        // 3. Fallback to GtkSettings defaults
+        if let Some(gtk_settings) = gtk4::Settings::default() {
+            if let Some(theme_name) = gtk_settings.gtk_theme_name() {
+                if theme_name.to_lowercase().contains("dark") {
+                    return true;
+                }
+            }
+        }
+
+        false
+    }
+
+    fn setup_theme_sync() {
+        let schema_exists = gtk4::gio::SettingsSchemaSource::default()
+            .and_then(|source| source.lookup("org.gnome.desktop.interface", true))
+            .is_some();
+
+        if schema_exists {
+            let gsettings = gtk4::gio::Settings::new("org.gnome.desktop.interface");
+            let gtk_settings = gtk4::Settings::default().unwrap();
+            
+            // Set initial state
+            gtk_settings.set_gtk_application_prefer_dark_theme(Self::is_system_dark_mode());
+
+            // Connect signal to listen to changes dynamically
+            gsettings.connect_changed(None, move |_, key| {
+                if key == "color-scheme" || key == "gtk-theme" {
+                    if let Some(s) = gtk4::Settings::default() {
+                        s.set_gtk_application_prefer_dark_theme(Self::is_system_dark_mode());
+                    }
+                }
+            });
+        } else {
+            // Fallback for non-GNOME/XFCE environments where schema is missing
+            if let Some(gtk_settings) = gtk4::Settings::default() {
+                gtk_settings.set_gtk_application_prefer_dark_theme(Self::is_system_dark_mode());
+
+                gtk_settings.connect_gtk_theme_name_notify(move |s| {
+                    if let Some(theme_name) = s.gtk_theme_name() {
+                        let is_dark = theme_name.to_lowercase().contains("dark");
+                        s.set_gtk_application_prefer_dark_theme(is_dark);
+                    }
+                });
+            }
         }
     }
 }
