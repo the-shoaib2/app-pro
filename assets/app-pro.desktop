@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=App Pro
+Comment=Linux system utility: install, manage, clean, monitor
+Exec=/usr/local/bin/app-pro
+Icon=app-pro
+Terminal=false
+Type=Application
+Categories=Utility;System;GTK;
+StartupNotify=true
+StartupWMClass=app-pro

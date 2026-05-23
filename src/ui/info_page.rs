@@ -108,7 +108,7 @@ impl InfoPage {
         ver_key.set_halign(gtk4::Align::Start);
         ver_key.set_hexpand(true);
 
-        let ver_val = Label::new(Some(env!("CARGO_PKG_VERSION")));
+        let ver_val = Label::new(Some(crate::core::app_version()));
         ver_val.set_css_classes(&["info-value"]);
         ver_val.set_halign(gtk4::Align::End);
 
@@ -177,7 +177,7 @@ impl InfoPage {
             UpdateFailed(String),
         }
 
-        let current_version = env!("CARGO_PKG_VERSION");
+        let current_version = crate::core::app_version();
         let update_state = std::sync::Arc::new(std::sync::Mutex::new(None));
 
         let btn_clone = check_btn.clone();

@@ -3,6 +3,10 @@ use std::path::Path;
 use std::process::{Command, Output};
 use std::io;
 
+pub fn app_version() -> &'static str {
+    option_env!("APP_PRO_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"))
+}
+
 pub struct SystemExec;
 
 #[derive(Debug, Clone)]
