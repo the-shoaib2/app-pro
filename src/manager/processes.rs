@@ -9,12 +9,14 @@ pub struct ProcessInfo {
     pub memory_bytes: u64,
     pub state: String,
     pub user: String,
+    pub ports: Vec<u16>,
 }
 
 pub struct ProcessManager;
 
 impl ProcessManager {
     pub fn list_processes() -> Vec<ProcessInfo> {
+        let inode_map = Self::get_inode_to_port_map();
         let mut processes = Vec::new();
 
         // Read /proc for process information
@@ -32,7 +34,7 @@ impl ProcessManager {
                     Err(_) => continue,
                 };
 
-                let proc = Self::read_process_info(pid);
+                let proc = Self::read_process_info(pid, &inode_map);
                 if let Some(info) = proc {
                     processes.push(info);
                 }
@@ -82,7 +84,69 @@ impl ProcessManager {
         }
     }
 
-    fn read_process_info(pid: u32) -> Option<ProcessInfo> {
+    fn get_inode_to_port_map() -> std::collections::HashMap<u64, Vec<u16>> {
+        let mut map: std::collections::HashMap<u64, Vec<u16>> = std::collections::HashMap::new();
+        let files = ["/proc/net/tcp", "/proc/net/tcp6", "/proc/net/udp", "/proc/net/udp6"];
+        
+        for file_path in &files {
+            if let Ok(content) = std::fs::read_to_string(file_path) {
+                for line in content.lines().skip(1) {
+                    let parts: Vec<&str> = line.split_whitespace().collect();
+                    if parts.len() >= 10 {
+                        let local_addr = parts[1];
+                        let state = parts[3];
+                        let inode_str = parts[9];
+                        
+                        // For TCP, we only want listening connections (state "0A")
+                        let is_tcp = file_path.contains("tcp");
+                        if is_tcp && state != "0A" {
+                            continue;
+                        }
+                        
+                        if let Some(colon_pos) = local_addr.find(':') {
+                            let port_hex = &local_addr[colon_pos + 1..];
+                            if let Ok(port) = u16::from_str_radix(port_hex, 16) {
+                                if let Ok(inode) = inode_str.parse::<u64>() {
+                                    if inode > 0 {
+                                        map.entry(inode).or_default().push(port);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        map
+    }
+
+    fn get_process_ports(pid: u32, inode_map: &std::collections::HashMap<u64, Vec<u16>>) -> Vec<u16> {
+        let mut ports = Vec::new();
+        let fd_dir = format!("/proc/{}/fd", pid);
+        if let Ok(entries) = std::fs::read_dir(fd_dir) {
+            for entry in entries.flatten() {
+                if let Ok(target) = std::fs::read_link(entry.path()) {
+                    let target_str = target.to_string_lossy();
+                    if target_str.starts_with("socket:[") && target_str.ends_with(']') {
+                        let inode_str = &target_str[8..target_str.len() - 1];
+                        if let Ok(inode) = inode_str.parse::<u64>() {
+                            if let Some(p_list) = inode_map.get(&inode) {
+                                for &port in p_list {
+                                    if !ports.contains(&port) {
+                                        ports.push(port);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        ports.sort();
+        ports
+    }
+
+    fn read_process_info(pid: u32, inode_map: &std::collections::HashMap<u64, Vec<u16>>) -> Option<ProcessInfo> {
         let proc_dir = std::path::PathBuf::from("/proc").join(pid.to_string());
 
         // Read /proc/[pid]/stat
@@ -120,6 +184,8 @@ impl ProcessManager {
 
         // CPU usage (simplified - we read /proc/stat for total time)
         let cpu_percent = estimate_cpu_usage(pid);
+        
+        let ports = Self::get_process_ports(pid, inode_map);
 
         Some(ProcessInfo {
             pid,
@@ -128,6 +194,7 @@ impl ProcessManager {
             memory_bytes,
             state,
             user,
+            ports,
         })
     }
 }

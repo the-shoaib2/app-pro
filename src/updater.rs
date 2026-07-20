@@ -55,17 +55,32 @@ fn is_valid_elf(path: &std::path::Path) -> bool {
 pub fn check_for_updates(current_version: &str) -> Result<Option<ReleaseInfo>, String> {
     let url = "https://api.github.com/repos/the-shoaib2/app-pro/releases/latest";
     let resp = std::process::Command::new("curl")
-        .args(["-fsSL", "-H", "Accept: application/json", url])
+        .args([
+            "-sSL",
+            "-H", "Accept: application/json",
+            "-H", "User-Agent: App-Pro-Client",
+            url
+        ])
         .output()
         .map_err(|e| format!("Failed to check updates: {}", e))?;
 
     if !resp.status.success() {
         let stderr = String::from_utf8_lossy(&resp.stderr);
-        return Err(format!("GitHub API error: {}", stderr));
+        return Err(format!("curl failed: {}", stderr));
     }
 
     let body: serde_json::Value =
         serde_json::from_slice(&resp.stdout).map_err(|e| format!("Parse error: {}", e))?;
+
+    if let Some(msg) = body["message"].as_str() {
+        if msg.contains("rate limit exceeded") || msg.contains("Rate limit exceeded") {
+            return Err("GitHub API rate limit exceeded. Please try again later.".to_string());
+        }
+        if msg.contains("Not Found") {
+            return Ok(None);
+        }
+        return Err(format!("GitHub API error: {}", msg));
+    }
 
     let tag_name = body["tag_name"]
         .as_str()
@@ -96,6 +111,29 @@ pub fn check_for_updates(current_version: &str) -> Result<Option<ReleaseInfo>, S
         body: body_text,
         download_url,
     }))
+}
+
+pub fn should_auto_check() -> bool {
+    let cache_dir = dirs::cache_dir().unwrap_or_else(std::env::temp_dir);
+    let check_file = cache_dir.join("app-pro-last-update-check");
+    if let Ok(content) = std::fs::read_to_string(&check_file) {
+        if let Ok(last_time) = content.trim().parse::<u64>() {
+            if let Ok(now) = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH) {
+                if now.as_secs() > last_time && now.as_secs() - last_time < 12 * 3600 {
+                    return false;
+                }
+            }
+        }
+    }
+    true
+}
+
+pub fn update_last_check_timestamp() {
+    let cache_dir = dirs::cache_dir().unwrap_or_else(std::env::temp_dir);
+    let check_file = cache_dir.join("app-pro-last-update-check");
+    if let Ok(now) = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH) {
+        std::fs::write(check_file, now.as_secs().to_string()).ok();
+    }
 }
 
 pub fn perform_update(release: &ReleaseInfo) -> Result<(), String> {

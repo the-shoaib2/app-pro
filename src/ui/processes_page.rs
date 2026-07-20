@@ -17,10 +17,9 @@ impl ProcessesPage {
         let header = Box::new(gtk4::Orientation::Horizontal, 6);
         header.set_css_classes(&["page-header"]);
 
-        // Search Entry
         let search_entry = gtk4::SearchEntry::new();
-        search_entry.set_placeholder_text(Some("Search by PID or name..."));
-        search_entry.set_width_request(180);
+        search_entry.set_placeholder_text(Some("Search by PID, name or port..."));
+        search_entry.set_width_request(200);
         header.append(&search_entry);
 
         // Spacer to push buttons to the right
@@ -152,7 +151,9 @@ impl ProcessesPage {
                 if query.is_empty() {
                     true
                 } else {
-                    p.name.to_lowercase().contains(&query) || p.pid.to_string().contains(&query)
+                    p.name.to_lowercase().contains(&query) || 
+                    p.pid.to_string().contains(&query) ||
+                    p.ports.iter().any(|port| port.to_string().contains(&query))
                 }
             })
             .collect();
@@ -165,8 +166,8 @@ impl ProcessesPage {
         header_box.set_margin_start(12);
         header_box.set_margin_end(12);
 
-        let widths: [i32; 5] = [55, 140, 80, 55, 70];
-        for (i, text) in ["PID", "Name", "Memory", "State", "User"].iter().enumerate() {
+        let widths: [i32; 5] = [55, 140, 80, 70, 70];
+        for (i, text) in ["PID", "Name", "Memory", "Port", "User"].iter().enumerate() {
             let h = Label::new(Some(text));
             h.set_css_classes(&["process-header"]);
             h.set_halign(gtk4::Align::Start);
@@ -205,10 +206,16 @@ impl ProcessesPage {
             mem_label.set_width_request(80);
             mem_label.set_halign(gtk4::Align::End);
 
-            let state_label = Label::new(Some(&proc.state));
-            state_label.set_css_classes(&["process-state"]);
-            state_label.set_width_request(55);
-            state_label.set_halign(gtk4::Align::Center);
+            let port_str = if proc.ports.is_empty() {
+                "-".to_string()
+            } else {
+                proc.ports.iter().map(|p| p.to_string()).collect::<Vec<_>>().join(", ")
+            };
+            let port_label = Label::new(Some(&port_str));
+            port_label.set_css_classes(&["process-port"]);
+            port_label.set_width_request(70);
+            port_label.set_halign(gtk4::Align::Start);
+            port_label.set_ellipsize(gtk4::pango::EllipsizeMode::End);
 
             let user_label = Label::new(Some(&proc.user));
             user_label.set_css_classes(&["process-user"]);
@@ -218,7 +225,7 @@ impl ProcessesPage {
             hbox.append(&pid_label);
             hbox.append(&name_label);
             hbox.append(&mem_label);
-            hbox.append(&state_label);
+            hbox.append(&port_label);
             hbox.append(&user_label);
             row.set_child(Some(&hbox));
             list_box.append(&row);
