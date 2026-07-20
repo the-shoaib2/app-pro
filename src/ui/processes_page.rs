@@ -7,6 +7,7 @@ pub struct ProcessesPage {
     pub container: Box,
     list_box: ListBox,
     status_label: Label,
+    search_entry: gtk4::SearchEntry,
 }
 
 impl ProcessesPage {
@@ -16,12 +17,19 @@ impl ProcessesPage {
         let header = Box::new(gtk4::Orientation::Horizontal, 6);
         header.set_css_classes(&["page-header"]);
 
-        let title = Label::new(Some("Running Processes"));
-        title.set_css_classes(&["page-title"]);
-        title.set_hexpand(true);
-        header.append(&title);
+        // Search Entry
+        let search_entry = gtk4::SearchEntry::new();
+        search_entry.set_placeholder_text(Some("Search by PID or name..."));
+        search_entry.set_width_request(180);
+        header.append(&search_entry);
 
-        let refresh_btn = Button::with_label("Refresh");
+        // Spacer to push buttons to the right
+        let spacer = Box::new(gtk4::Orientation::Horizontal, 0);
+        spacer.set_hexpand(true);
+        header.append(&spacer);
+
+        // Refresh button with icon only
+        let refresh_btn = Button::from_icon_name("view-refresh-symbolic");
         refresh_btn.set_css_classes(&["action-button"]);
 
         let kill_btn = Button::with_label("Kill");
@@ -53,6 +61,7 @@ impl ProcessesPage {
             container,
             list_box,
             status_label,
+            search_entry: search_entry.clone(),
         };
 
         page.refresh();
@@ -60,14 +69,21 @@ impl ProcessesPage {
         // Signal connections
         let list = page.list_box.clone();
         let status = page.status_label.clone();
+        let search = page.search_entry.clone();
         refresh_btn.connect_clicked(move |_| {
-            let s = status.clone();
-            let l = list.clone();
-            Self::populate_list(&l, &s);
+            Self::populate_list(&list, &status, &search);
         });
 
         let list = page.list_box.clone();
         let status = page.status_label.clone();
+        let search = page.search_entry.clone();
+        search_entry.connect_changed(move |_| {
+            Self::populate_list(&list, &status, &search);
+        });
+
+        let list = page.list_box.clone();
+        let status = page.status_label.clone();
+        let search = page.search_entry.clone();
         kill_btn.connect_clicked(move |_| {
             if let Some(row) = list.selected_row() {
                 if let Some(child) = row.child() {
@@ -80,7 +96,7 @@ impl ProcessesPage {
                                         Ok(msg) => status.set_text(&msg),
                                         Err(e) => status.set_text(&e),
                                     }
-                                    Self::populate_list(&list, &status);
+                                    Self::populate_list(&list, &status, &search);
                                 }
                             }
                         }
@@ -93,6 +109,7 @@ impl ProcessesPage {
 
         let list = page.list_box.clone();
         let status = page.status_label.clone();
+        let search = page.search_entry.clone();
         force_kill_btn.connect_clicked(move |_| {
             if let Some(row) = list.selected_row() {
                 if let Some(child) = row.child() {
@@ -104,7 +121,7 @@ impl ProcessesPage {
                                         Ok(msg) => status.set_text(&msg),
                                         Err(e) => status.set_text(&e),
                                     }
-                                    Self::populate_list(&list, &status);
+                                    Self::populate_list(&list, &status, &search);
                                 }
                             }
                         }
@@ -119,16 +136,26 @@ impl ProcessesPage {
     }
 
     pub fn refresh(&self) {
-        Self::populate_list(&self.list_box, &self.status_label);
+        Self::populate_list(&self.list_box, &self.status_label, &self.search_entry);
     }
 
-    fn populate_list(list_box: &ListBox, status: &Label) {
+    fn populate_list(list_box: &ListBox, status: &Label, search_entry: &gtk4::SearchEntry) {
         // Remove existing children
         while let Some(child) = list_box.first_child() {
             list_box.remove(&child);
         }
 
+        let query = search_entry.text().to_string().to_lowercase();
         let processes = ProcessManager::list_user_processes();
+        let filtered: Vec<_> = processes.into_iter()
+            .filter(|p| {
+                if query.is_empty() {
+                    true
+                } else {
+                    p.name.to_lowercase().contains(&query) || p.pid.to_string().contains(&query)
+                }
+            })
+            .collect();
 
         // Header row
         let header_row = ListBoxRow::new();
@@ -150,7 +177,7 @@ impl ProcessesPage {
         header_row.set_css_classes(&["process-header-row"]);
         list_box.append(&header_row);
 
-        for proc in &processes {
+        for proc in &filtered {
             let row = ListBoxRow::new();
             let hbox = Box::new(gtk4::Orientation::Horizontal, 12);
             hbox.set_css_classes(&["process-row"]);
@@ -197,7 +224,11 @@ impl ProcessesPage {
             list_box.append(&row);
         }
 
-        status.set_text(&format!("Total processes: {}", processes.len()));
+        if query.is_empty() {
+            status.set_text(&format!("Total processes: {}", filtered.len()));
+        } else {
+            status.set_text(&format!("Total processes: {} (filtered: {})", filtered.len(), filtered.len()));
+        }
     }
 
     pub fn widget(&self) -> &Box {

@@ -3,15 +3,23 @@ window {
     font-family: "Cantarell", "Noto Sans", -apple-system, sans-serif;
     font-size: 12px;
     padding: 0;
+    border-radius: 12px;
 }
 
 .content-area {
     padding: 6px;
 }
 
-frame, .frame, button, entry, .install-card, .drop-zone,
+frame, .frame, .install-card, .drop-zone,
 .app-list, .process-list, .cleaner-list {
     border-radius: 10px;
+}
+
+entry, searchentry {
+    border-radius: 9999px;
+    border: none;
+    min-height: 24px;
+    padding: 2px 12px;
 }
 
 scrolledwindow {
@@ -154,101 +162,13 @@ progressbar.install-progress trough {
 
 /* ── File Entry ── */
 .file-entry {
-    border-radius: 8px;
-    min-height: 30px;
-    padding: 0 8px;
-}
-
-.browse-button {
-    border-radius: 8px;
-    padding: 4px 14px;
-    font-weight: 600;
-    min-height: 30px;
-}
-
-/* ── Buttons ── */
-button {
-    border-radius: 6px;
-    font-weight: 500;
-    padding: 4px 12px;
-    transition: all 150ms ease;
+    border-radius: 9999px;
     min-height: 24px;
+    padding: 0 12px;
+    border: none;
 }
 
 frame, .drop-zone, list, row {
-}
-
-.action-button {
-    font-size: 11px;
-    padding: 2px 8px;
-    min-height: 22px;
-}
-
-.primary-button {
-    padding: 6px 20px;
-    background-color: @theme_selected_bg_color;
-    color: @theme_selected_fg_color;
-    font-weight: 600;
-    font-size: 12px;
-    border: none;
-    border-radius: 8px;
-    min-height: 26px;
-}
-
-.primary-button:hover {
-    background-color: shade(@theme_selected_bg_color, 1.1);
-}
-
-.secondary-button {
-    padding: 6px 20px;
-    background-color: alpha(@theme_fg_color, 0.08);
-    color: @theme_fg_color;
-    font-weight: 600;
-    font-size: 12px;
-    border: 1px solid alpha(@theme_fg_color, 0.12);
-    border-radius: 8px;
-    min-height: 26px;
-}
-
-.secondary-button:hover {
-    background-color: alpha(@theme_fg_color, 0.15);
-}
-
-.danger-button {
-    background-color: #c01c28;
-    color: white;
-    border: none;
-    font-size: 11px;
-}
-
-.danger-button:hover {
-    background-color: #e02430;
-}
-
-.clean-button {
-    background-color: shade(@theme_selected_bg_color, 1.2);
-    color: @theme_selected_fg_color;
-    border: none;
-    font-size: 11px;
-}
-
-.clean-button:hover {
-    background-color: shade(@theme_selected_bg_color, 1.3);
-}
-
-.uninstall-button {
-    padding: 2px 8px;
-    background-color: #c01c28;
-    color: white;
-    border: none;
-    font-size: 10px;
-    font-weight: 600;
-    border-radius: 5px;
-    min-height: 20px;
-}
-
-.uninstall-button:hover {
-    background-color: #e02430;
 }
 
 /* ── App List ── */
@@ -280,32 +200,6 @@ frame, .drop-zone, list, row {
 /* ── Filter Bar ── */
 .filter-bar {
     background-color: transparent;
-}
-
-.filter-button {
-    font-size: 11px;
-    font-weight: 500;
-    padding: 2px 10px;
-    border-radius: 14px;
-    background-color: alpha(@theme_dim_label_color, 0.06);
-    color: @theme_dim_label_color;
-    border: none;
-    min-height: 22px;
-}
-
-.filter-button:hover {
-    background-color: alpha(@theme_selected_bg_color, 0.1);
-    color: @theme_fg_color;
-}
-
-.filter-active {
-    background-color: @theme_selected_bg_color;
-    color: @theme_selected_fg_color;
-    font-weight: 600;
-}
-
-.filter-active:hover {
-    background-color: shade(@theme_selected_bg_color, 1.1);
 }
 
 /* ── Origin Badges ── */
@@ -506,64 +400,12 @@ headerbar.custom-headerbar {
     color: @theme_fg_color;
     margin-bottom: 2px;
 }
-
-.header-btn {
-    background: transparent;
-    border: none;
-    color: @theme_fg_color;
-    padding: 4px 8px;
-    margin: 0 2px;
-    border-radius: 4px;
-    box-shadow: none;
-}
-
-.header-btn:hover {
-    background-color: alpha(@theme_selected_bg_color, 0.1);
-    color: @theme_fg_color;
-}
-
-.header-left-icon {
-    opacity: 0.8;
-}
-
-/* Terminal Log Panel */
-.install-log-scroll {
-    margin-top: 12px;
-    border: 1px solid @borders;
-    border-radius: 6px;
-    background-color: @theme_base_color;
-}
-
-.install-log-view {
-    font-family: monospace, Courier, "Courier New";
-    font-size: 11px;
-    background-color: @theme_base_color;
-    color: @theme_fg_color;
-    padding: 8px;
-}
-
 /* Ensure the window title label has the correct color, size, and weight */
 .header-title {
     font-size: 13px;
     font-weight: bold;
     color: #c1c4cd;
     margin-bottom: 2px;
-}
-
-/* Header action buttons (Search, Menu, Left Icon) */
-.header-btn {
-    background: transparent;
-    border: none;
-    color: #c1c4cd;
-    padding: 4px 8px;
-    margin: 0 2px;
-    border-radius: 4px;
-    box-shadow: none;
-}
-
-.header-btn:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-    color: #ffffff;
 }
 
 /* Left-most terminal icon button styling */

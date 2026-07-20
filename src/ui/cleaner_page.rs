@@ -17,16 +17,18 @@ impl CleanerPage {
     pub fn new(cleaner: Arc<CleanupManager>) -> Self {
         let container = Box::new(gtk4::Orientation::Vertical, 0);
 
-        let header = Box::new(gtk4::Orientation::Vertical, 2);
+        let header = Box::new(gtk4::Orientation::Horizontal, 6);
         header.set_css_classes(&["page-header"]);
-
-        let title = Label::new(Some("System Cleaner"));
-        title.set_css_classes(&["page-title"]);
-        header.append(&title);
 
         let desc = Label::new(Some("Clean up system caches and free disk space."));
         desc.set_css_classes(&["page-description"]);
+        desc.set_hexpand(true);
+        desc.set_halign(gtk4::Align::Start);
         header.append(&desc);
+
+        let clean_all_btn = Button::with_label("Clean All");
+        clean_all_btn.set_css_classes(&["primary-button"]);
+        header.append(&clean_all_btn);
         container.append(&header);
 
         let scrolled = ScrolledWindow::new();
@@ -46,11 +48,6 @@ impl CleanerPage {
         let status_label = Label::new(None);
         status_label.set_css_classes(&["status-label"]);
         bottom.append(&status_label);
-
-        let clean_all_btn = Button::with_label("Clean All");
-        clean_all_btn.set_css_classes(&["primary-button"]);
-        clean_all_btn.set_halign(gtk4::Align::Center);
-        bottom.append(&clean_all_btn);
 
         container.append(&bottom);
 

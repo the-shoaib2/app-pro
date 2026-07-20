@@ -25,26 +25,9 @@ impl InstalledAppsPage {
     pub fn new(manager: Arc<AppManager>) -> Self {
         let container = Box::new(gtk4::Orientation::Vertical, 0);
 
-        let header = Box::new(gtk4::Orientation::Horizontal, 0);
+        let header = Box::new(gtk4::Orientation::Horizontal, 6);
         header.set_css_classes(&["page-header"]);
         header.set_hexpand(true);
-
-        let title = Label::new(Some("Installed Applications"));
-        title.set_css_classes(&["page-title"]);
-        title.set_hexpand(true);
-        header.append(&title);
-
-        let refresh_button = Button::with_label("Refresh");
-        refresh_button.set_css_classes(&["action-button"]);
-        header.append(&refresh_button);
-        container.append(&header);
-
-        let filter_bar = Box::new(gtk4::Orientation::Horizontal, 4);
-        filter_bar.set_css_classes(&["filter-bar"]);
-        filter_bar.set_margin_start(12);
-        filter_bar.set_margin_end(12);
-        filter_bar.set_margin_top(8);
-        filter_bar.set_margin_bottom(4);
 
         let all_btn = Button::with_label("All Apps");
         all_btn.set_css_classes(&["filter-button"]);
@@ -53,22 +36,27 @@ impl InstalledAppsPage {
         let pro_btn = Button::with_label("App Pro");
         pro_btn.set_css_classes(&["filter-button", "filter-active"]);
 
-        filter_bar.append(&all_btn);
-        filter_bar.append(&user_btn);
-        filter_bar.append(&pro_btn);
+        header.append(&all_btn);
+        header.append(&user_btn);
+        header.append(&pro_btn);
 
-        // Spacer to push search entry to the right
+        // Spacer to push search entry and refresh button to the right
         let spacer = Box::new(gtk4::Orientation::Horizontal, 0);
         spacer.set_hexpand(true);
-        filter_bar.append(&spacer);
+        header.append(&spacer);
 
         // Search Entry
         let search_entry = gtk4::SearchEntry::new();
         search_entry.set_placeholder_text(Some("Search installed apps..."));
         search_entry.set_width_request(180);
-        filter_bar.append(&search_entry);
+        header.append(&search_entry);
 
-        container.append(&filter_bar);
+        // Refresh button with icon only
+        let refresh_button = Button::from_icon_name("view-refresh-symbolic");
+        refresh_button.set_css_classes(&["action-button"]);
+        header.append(&refresh_button);
+
+        container.append(&header);
 
         let scrolled = ScrolledWindow::new();
         scrolled.set_vexpand(true);

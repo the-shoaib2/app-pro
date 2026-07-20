@@ -33,11 +33,9 @@ impl InstallPage {
 
         let header = Box::new(gtk4::Orientation::Vertical, 2);
         header.set_css_classes(&["page-header"]);
-        let title = Label::new(Some("Install Application"));
-        title.set_css_classes(&["page-title"]);
-        header.append(&title);
         let desc = Label::new(Some("Select a .deb, .AppImage, .zip, or .tar.gz file to install."));
         desc.set_css_classes(&["page-description"]);
+        desc.set_halign(gtk4::Align::Start);
         header.append(&desc);
         container.append(&header);
 

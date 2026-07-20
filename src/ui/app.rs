@@ -68,7 +68,7 @@ impl AppProUI {
 
         let window = ApplicationWindow::new(app);
         window.set_title(Some("App Pro - System Utility"));
-        window.set_default_size(580, 480);
+        window.set_default_size(520, 420);
         window.set_resizable(true);
         window.set_child(Some(&layout));
 
@@ -111,7 +111,8 @@ impl AppProUI {
 
     fn apply_css(_window: &ApplicationWindow) {
         let provider = gtk4::CssProvider::new();
-        provider.load_from_string(include_str!("style.css"));
+        let css = format!("{}{}", include_str!("style.css"), include_str!("button.css"));
+        provider.load_from_string(&css);
 
         if let Some(display) = gtk4::gdk::Display::default() {
             gtk4::style_context_add_provider_for_display(

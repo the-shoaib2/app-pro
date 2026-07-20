@@ -10,13 +10,6 @@ impl InfoPage {
     pub fn new() -> Self {
         let container = Box::new(gtk4::Orientation::Vertical, 0);
 
-        let header = Box::new(gtk4::Orientation::Vertical, 2);
-        header.set_css_classes(&["page-header"]);
-
-        let title = Label::new(Some("System Information"));
-        title.set_css_classes(&["page-title"]);
-        header.append(&title);
-        container.append(&header);
 
         let scrolled = gtk4::ScrolledWindow::new();
         scrolled.set_vexpand(true);
