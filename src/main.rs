@@ -89,7 +89,7 @@ fn main() {
             }
             other => {
                 // If it looks like a file or path, assume we want to open it in GUI
-                if other.ends_with(".deb") || other.ends_with(".AppImage") || other.ends_with(".zip") || std::path::Path::new(other).exists() {
+                if other.ends_with(".deb") || other.ends_with(".AppImage") || other.ends_with(".zip") || other.ends_with(".tar.gz") || other.ends_with(".tgz") || std::path::Path::new(other).exists() {
                     file_to_install = Some(other.to_string());
                 } else {
                     eprintln!("Unknown argument: {}", other);

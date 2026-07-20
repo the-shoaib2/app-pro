@@ -3,7 +3,7 @@ pub mod desktop_scanner;
 
 use crate::db::{AppDatabase, AppEntry};
 use crate::installer::{InstallResult, InstallType};
-use crate::installer::{deb::DebInstaller, appimage::AppImageInstaller, zip::ZipInstaller};
+use crate::installer::{deb::DebInstaller, appimage::AppImageInstaller, zip::ZipInstaller, tar::TarInstaller};
 use std::path::Path;
 
 pub struct AppManager {
@@ -23,6 +23,7 @@ impl AppManager {
             InstallType::Deb => DebInstaller::install(path, log_tx),
             InstallType::AppImage => AppImageInstaller::install(path, log_tx),
             InstallType::Zip => ZipInstaller::install(path, log_tx),
+            InstallType::TarGz => TarInstaller::install(path, log_tx),
             InstallType::Unknown => {
                 return InstallResult {
                     success: false,
@@ -59,6 +60,7 @@ impl AppManager {
             "deb" => DebInstaller::uninstall(app),
             "appimage" => AppImageInstaller::uninstall(app),
             "zip" => ZipInstaller::uninstall(app),
+            "targz" => TarInstaller::uninstall(app),
             _ => InstallResult {
                 success: false,
                 message: format!("Unknown install type: {}", app.install_type),

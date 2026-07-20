@@ -17,7 +17,7 @@
 
 ## 🚀 Features
 
-* 📦 **Install** — Drag & drop `.deb`, `.AppImage`, or `.zip` files.
+* 📦 **Install** — Drag & drop `.deb`, `.AppImage`, `.zip`, or `.tar.gz`/`.tgz` files.
 * 🗑️ **Uninstall** — Cleanly remove installed applications.
 * ⚡ **Processes** — Monitor and terminate running processes.
 * 🧹 **Cleaner** — Free disk space by clearing system caches.

@@ -36,7 +36,7 @@ impl InstallPage {
         let title = Label::new(Some("Install Application"));
         title.set_css_classes(&["page-title"]);
         header.append(&title);
-        let desc = Label::new(Some("Select a .deb, .AppImage, or .zip file to install."));
+        let desc = Label::new(Some("Select a .deb, .AppImage, .zip, or .tar.gz file to install."));
         desc.set_css_classes(&["page-description"]);
         header.append(&desc);
         container.append(&header);
@@ -415,6 +415,8 @@ fn open_dialog(
     filter.add_pattern("*.deb");
     filter.add_pattern("*.AppImage");
     filter.add_pattern("*.zip");
+    filter.add_pattern("*.tar.gz");
+    filter.add_pattern("*.tgz");
     let dialog = gtk4::FileDialog::new();
     dialog.set_title("Select Installer File");
     dialog.set_default_filter(Some(&filter));
@@ -470,7 +472,7 @@ fn select_file_inner(
     let icon = match ext.as_str() {
         "deb" => "📦",
         "appimage" => "⚡",
-        "zip" => "🗜️",
+        "zip" | "tgz" | "gz" => "🗜️",
         _ => "📄",
     };
 
@@ -523,6 +525,14 @@ fn get_app_name_from_path(path: &Path) -> String {
         "zip" => {
             let filename = path.file_name().and_then(|s| s.to_str()).unwrap_or("unknown");
             filename.strip_suffix(".zip").unwrap_or(filename).to_string()
+        }
+        "gz" | "tgz" => {
+            let filename = path.file_name().and_then(|s| s.to_str()).unwrap_or("unknown");
+            filename
+                .strip_suffix(".tar.gz")
+                .or_else(|| filename.strip_suffix(".tgz"))
+                .unwrap_or(filename)
+                .to_string()
         }
         _ => {
             path.file_stem().and_then(|s| s.to_str()).unwrap_or("unknown").to_string()

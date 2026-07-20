@@ -49,7 +49,7 @@ fn test_dpkg_available() {
 
 #[test]
 fn test_system_has_required_commands() {
-    for cmd in &["dpkg", "apt-get", "kill", "pkill", "unzip", "curl"] {
+    for cmd in &["dpkg", "apt-get", "kill", "pkill", "unzip", "curl", "tar"] {
         let result = Command::new("which")
             .arg(cmd)
             .output();

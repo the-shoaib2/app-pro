@@ -68,7 +68,7 @@ impl AppProUI {
 
         let window = ApplicationWindow::new(app);
         window.set_title(Some("App Pro - System Utility"));
-        window.set_default_size(680, 560);
+        window.set_default_size(580, 480);
         window.set_resizable(true);
         window.set_child(Some(&layout));
 
