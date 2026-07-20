@@ -41,7 +41,10 @@ impl AppDatabase {
         Ok(db)
     }
 
-    #[allow(dead_code)]
+    pub fn db_path(&self) -> PathBuf {
+        Self::get_db_path()
+    }
+
     pub fn new_from_conn(conn: Connection) -> Self {
         let db = AppDatabase { conn: Mutex::new(conn) };
         db.initialize_tables().ok();
@@ -221,6 +224,12 @@ impl AppDatabase {
             Some(Ok(val)) => Ok(Some(val)),
             _ => Ok(None),
         }
+    }
+
+    pub fn vacuum(&self) -> Result<()> {
+        let conn = self.conn.lock().unwrap();
+        conn.execute("VACUUM", [])?;
+        Ok(())
     }
 }
 

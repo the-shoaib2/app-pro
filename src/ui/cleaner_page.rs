@@ -74,6 +74,7 @@ impl CleanerPage {
             let results = [cleaner.clean_user_cache(),
                 cleaner.clean_apt_cache(),
                 cleaner.clean_thumbnails(),
+                cleaner.clean_app_pro_cache(),
                 cleaner.clean_orphan_packages()];
             let total: u64 = results.iter().map(|r| r.bytes_freed).sum();
             let total_str = if total > 1024 * 1024 * 1024 {
@@ -150,6 +151,7 @@ impl CleanerPage {
                     "User Cache" => c.clean_user_cache(),
                     "APT Cache" => c.clean_apt_cache(),
                     "Thumbnails" => c.clean_thumbnails(),
+                    "App Pro Cache" => c.clean_app_pro_cache(),
                     _ => {
                         s.set_text(&format!("Unknown cache type: {}", name_clone));
                         return;

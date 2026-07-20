@@ -161,6 +161,63 @@ impl CleanupManager {
         }
     }
 
+    pub fn clean_app_pro_cache(&self) -> CleanupResult {
+        let mut bytes_freed = 0;
+        let mut message_parts: Vec<String> = Vec::new();
+        let path = "app-pro-cache".to_string();
+
+        let cache_dir = dirs::cache_dir().unwrap_or_else(std::env::temp_dir);
+        let check_file = cache_dir.join("app-pro-last-update-check");
+        if check_file.exists() {
+            if let Ok(metadata) = std::fs::metadata(&check_file) {
+                bytes_freed += metadata.len();
+            }
+            if std::fs::remove_file(&check_file).is_ok() {
+                message_parts.push("Removed update check cache".to_string());
+            }
+        }
+
+        let tmp_update = std::env::temp_dir().join("app-pro-update");
+        if tmp_update.exists() {
+            if let Ok(metadata) = std::fs::metadata(&tmp_update) {
+                bytes_freed += metadata.len();
+            }
+            if std::fs::remove_file(&tmp_update).is_ok() {
+                message_parts.push("Removed downloaded update files".to_string());
+            }
+        }
+
+        // Vacuum and optimize database
+        let db_path = self.db.db_path();
+        let db_size_before = std::fs::metadata(&db_path).map(|m| m.len()).unwrap_or(0);
+        if self.db.vacuum().is_ok() {
+            let db_size_after = std::fs::metadata(&db_path).map(|m| m.len()).unwrap_or(0);
+            if db_size_before > db_size_after {
+                let saved = db_size_before - db_size_after;
+                bytes_freed += saved;
+                message_parts.push(format!("Optimized database (saved {} bytes)", saved));
+            } else {
+                message_parts.push("Optimized database".to_string());
+            }
+        }
+
+        let message = if message_parts.is_empty() {
+            "App Pro cache is already clean.".to_string()
+        } else {
+            format!("Cleaned App Pro cache ({}): freed {} bytes", message_parts.join(", "), bytes_freed)
+        };
+
+        self.record_cleanup(&path, "App Pro cache", bytes_freed);
+
+        CleanupResult {
+            path,
+            description: "App Pro cache".to_string(),
+            bytes_freed,
+            success: true,
+            message,
+        }
+    }
+
     #[allow(dead_code)]
     pub fn get_size_of(path: &str) -> u64 {
         SystemExec::get_size(path)
