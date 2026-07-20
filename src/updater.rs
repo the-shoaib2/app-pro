@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+#[derive(Debug, Clone)]
 pub struct ReleaseInfo {
     pub tag_name: String,
     #[allow(dead_code)]

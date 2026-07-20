@@ -90,6 +90,27 @@ impl AppProUI {
 
         Self::apply_css(&window);
 
+        // Auto update check on startup in background
+        {
+            let (sender, receiver) = std::sync::mpsc::channel();
+            std::thread::spawn(move || {
+                let current_version = crate::core::app_version();
+                if let Ok(Some(release)) = crate::updater::check_for_updates(current_version) {
+                    sender.send(release).ok();
+                }
+            });
+
+            let window_clone = window.clone();
+            gtk4::glib::timeout_add_local(std::time::Duration::from_millis(100), move || {
+                if let Ok(release) = receiver.try_recv() {
+                    Self::show_update_dialog(&window_clone, release);
+                    gtk4::glib::ControlFlow::Break
+                } else {
+                    gtk4::glib::ControlFlow::Continue
+                }
+            });
+        }
+
         AppProUI {
             window,
             main_stack,
@@ -207,5 +228,65 @@ impl AppProUI {
                 });
             }
         }
+    }
+
+    fn show_update_dialog(parent: &ApplicationWindow, release: crate::updater::ReleaseInfo) {
+        let dialog = gtk4::MessageDialog::new(
+            Some(parent),
+            gtk4::DialogFlags::MODAL,
+            gtk4::MessageType::Question,
+            gtk4::ButtonsType::YesNo,
+            "Update Available",
+        );
+        dialog.set_secondary_text(Some(&format!(
+            "A new version ({}) of App Pro is available.\n\nWould you like to download and install the update now?",
+            release.tag_name
+        )));
+
+        dialog.connect_response(move |dialog, response| {
+            dialog.close();
+            if response == gtk4::ResponseType::Yes {
+                let rel = release.clone();
+                std::thread::spawn(move || {
+                    match crate::updater::perform_update(&rel) {
+                        Ok(_) => {
+                            gtk4::glib::idle_add_local(move || {
+                                let success_dialog = gtk4::MessageDialog::new(
+                                    None::<&gtk4::Window>,
+                                    gtk4::DialogFlags::MODAL,
+                                    gtk4::MessageType::Info,
+                                    gtk4::ButtonsType::Ok,
+                                    "Update Complete",
+                                );
+                                success_dialog.set_secondary_text(Some("✓ Update complete! Please restart App Pro to use the new version."));
+                                success_dialog.connect_response(|d, _| {
+                                    d.close();
+                                });
+                                success_dialog.show();
+                                gtk4::glib::ControlFlow::Break
+                            });
+                        }
+                        Err(e) => {
+                            gtk4::glib::idle_add_local(move || {
+                                let err_dialog = gtk4::MessageDialog::new(
+                                    None::<&gtk4::Window>,
+                                    gtk4::DialogFlags::MODAL,
+                                    gtk4::MessageType::Error,
+                                    gtk4::ButtonsType::Ok,
+                                    "Update Failed",
+                                );
+                                err_dialog.set_secondary_text(Some(&format!("✗ Update failed: {}", e)));
+                                err_dialog.connect_response(|d, _| {
+                                    d.close();
+                                });
+                                err_dialog.show();
+                                gtk4::glib::ControlFlow::Break
+                            });
+                        }
+                    };
+                });
+            }
+        });
+        dialog.show();
     }
 }
