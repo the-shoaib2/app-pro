@@ -234,55 +234,42 @@ impl AppProUI {
     }
 
     fn show_update_dialog(parent: &ApplicationWindow, release: crate::updater::ReleaseInfo) {
-        let dialog = gtk4::MessageDialog::new(
-            Some(parent),
-            gtk4::DialogFlags::MODAL,
-            gtk4::MessageType::Question,
-            gtk4::ButtonsType::YesNo,
-            "Update Available",
-        );
-        dialog.set_secondary_text(Some(&format!(
-            "A new version ({}) of App Pro is available.\n\nWould you like to download and install the update now?",
-            release.tag_name
-        )));
+        let alert = gtk4::AlertDialog::builder()
+            .message("Update Available")
+            .detail(&format!(
+                "A new version ({}) of App Pro is available.\n\nWould you like to download and install the update now?",
+                release.tag_name
+            ))
+            .buttons(["Yes", "No"])
+            .modal(true)
+            .build();
 
-        dialog.connect_response(move |dialog, response| {
-            dialog.close();
-            if response == gtk4::ResponseType::Yes {
+        alert.choose(Some(parent), None::<&gtk4::gio::Cancellable>, move |response| {
+            if response == Ok(0) {
                 let rel = release.clone();
                 std::thread::spawn(move || {
                     match crate::updater::perform_update(&rel) {
                         Ok(_) => {
                             gtk4::glib::idle_add(move || {
-                                let success_dialog = gtk4::MessageDialog::new(
-                                    None::<&gtk4::Window>,
-                                    gtk4::DialogFlags::MODAL,
-                                    gtk4::MessageType::Info,
-                                    gtk4::ButtonsType::Ok,
-                                    "Update Complete",
-                                );
-                                success_dialog.set_secondary_text(Some("✓ Update complete! Please restart App Pro to use the new version."));
-                                success_dialog.connect_response(|d, _| {
-                                    d.close();
-                                });
-                                success_dialog.show();
+                                let success_alert = gtk4::AlertDialog::builder()
+                                    .message("Update Complete")
+                                    .detail("✓ Update complete! Please restart App Pro to use the new version.")
+                                    .buttons(["OK"])
+                                    .modal(true)
+                                    .build();
+                                success_alert.show(None::<&gtk4::Window>);
                                 gtk4::glib::ControlFlow::Break
                             });
                         }
                         Err(e) => {
                             gtk4::glib::idle_add(move || {
-                                let err_dialog = gtk4::MessageDialog::new(
-                                    None::<&gtk4::Window>,
-                                    gtk4::DialogFlags::MODAL,
-                                    gtk4::MessageType::Error,
-                                    gtk4::ButtonsType::Ok,
-                                    "Update Failed",
-                                );
-                                err_dialog.set_secondary_text(Some(&format!("✗ Update failed: {}", e)));
-                                err_dialog.connect_response(|d, _| {
-                                    d.close();
-                                });
-                                err_dialog.show();
+                                let err_alert = gtk4::AlertDialog::builder()
+                                    .message("Update Failed")
+                                    .detail(&format!("✗ Update failed: {}", e))
+                                    .buttons(["OK"])
+                                    .modal(true)
+                                    .build();
+                                err_alert.show(None::<&gtk4::Window>);
                                 gtk4::glib::ControlFlow::Break
                             });
                         }
@@ -290,6 +277,5 @@ impl AppProUI {
                 });
             }
         });
-        dialog.show();
     }
 }

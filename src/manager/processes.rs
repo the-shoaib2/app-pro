@@ -7,6 +7,7 @@ pub struct ProcessInfo {
     #[allow(dead_code)]
     pub cpu_percent: f32,
     pub memory_bytes: u64,
+    #[allow(dead_code)]
     pub state: String,
     pub user: String,
     pub ports: Vec<u16>,
