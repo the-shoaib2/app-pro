@@ -52,15 +52,54 @@ fn is_valid_elf(path: &std::path::Path) -> bool {
     f.read_exact(&mut magic).is_ok() && magic == [0x7f, 0x45, 0x4c, 0x46]
 }
 
+fn get_github_token() -> Option<String> {
+    if let Ok(token) = std::env::var("GITHUB_TOKEN") {
+        if !token.trim().is_empty() {
+            return Some(token.trim().to_string());
+        }
+    }
+
+    if let Some(config_dir) = dirs::config_dir() {
+        let token_file = config_dir.join("app-pro").join("github_token");
+        if let Ok(token) = std::fs::read_to_string(token_file) {
+            if !token.trim().is_empty() {
+                return Some(token.trim().to_string());
+            }
+        }
+    }
+
+    if let Ok(content) = std::fs::read_to_string(".env") {
+        for line in content.lines() {
+            if line.starts_with("GITHUB_TOKEN=") {
+                let token = line.trim_start_matches("GITHUB_TOKEN=").trim();
+                let token = token.trim_matches('"').trim_matches('\'').trim();
+                if !token.is_empty() {
+                    return Some(token.to_string());
+                }
+            }
+        }
+    }
+
+    None
+}
+
 pub fn check_for_updates(current_version: &str) -> Result<Option<ReleaseInfo>, String> {
     let url = "https://api.github.com/repos/the-shoaib2/app-pro/releases/latest";
+    let mut args = vec![
+        "-sSL".to_string(),
+        "-H".to_string(), "Accept: application/json".to_string(),
+        "-H".to_string(), "User-Agent: App-Pro-Client".to_string(),
+    ];
+
+    if let Some(token) = get_github_token() {
+        args.push("-H".to_string());
+        args.push(format!("Authorization: Bearer {}", token));
+    }
+
+    args.push(url.to_string());
+
     let resp = std::process::Command::new("curl")
-        .args([
-            "-sSL",
-            "-H", "Accept: application/json",
-            "-H", "User-Agent: App-Pro-Client",
-            url
-        ])
+        .args(&args)
         .output()
         .map_err(|e| format!("Failed to check updates: {}", e))?;
 
