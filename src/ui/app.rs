@@ -94,9 +94,12 @@ impl AppProUI {
         {
             let (sender, receiver) = std::sync::mpsc::channel();
             std::thread::spawn(move || {
-                let current_version = crate::core::app_version();
-                if let Ok(Some(release)) = crate::updater::check_for_updates(current_version) {
-                    sender.send(release).ok();
+                if crate::updater::should_auto_check() {
+                    let current_version = crate::core::app_version();
+                    if let Ok(Some(release)) = crate::updater::check_for_updates(current_version) {
+                        sender.send(release).ok();
+                    }
+                    crate::updater::update_last_check_timestamp();
                 }
             });
 
