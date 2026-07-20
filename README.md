@@ -15,39 +15,60 @@
 
 ---
 
-## 🚀 Features
+App Pro is a premium, lightweight Linux system dashboard built in Rust and powered by GTK4. It provides a sleek, single-header UI to manage, monitor, and clean your system.
 
-* 📦 **Install** — Drag & drop `.deb`, `.AppImage`, `.zip`, or `.tar.gz`/`.tgz` files.
-* 🗑️ **Uninstall** — Cleanly remove installed applications.
-* ⚡ **Processes** — Monitor and terminate running processes.
-* 🧹 **Cleaner** — Free disk space by clearing system caches.
-* 📊 **System Info** — Live hardware stats and GUI/CLI auto-updates.
+## ✨ Features
+
+* 📦 **Application Installer** — Drag & drop to install `.deb`, `.AppImage`, `.zip`, or `.tar.gz`/`.tgz` packages.
+* 🗑️ **Uninstaller** — Safely remove and clean up installed applications.
+* ⚡ **Process Monitor** — Search by port or name, monitor memory, and terminate processes.
+* 🧹 **System Cleaner** — Free disk space by cleaning user cache, thumbnails, APT cache, orphaned packages, and vacuuming the App Pro database.
+* 📊 **System Info** — Live CPU/memory stats and background system auto-updates.
 
 ---
 
 ## 📥 Installation
 
+Install globally using the official installer script:
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/the-shoaib2/app-pro/main/install.sh | sudo bash
 ```
 
+### 🔑 GitHub Rate Limits (Optional)
+If you run into anonymous GitHub API rate limits while checking for updates, you can create a local `.env` file in the project root:
+```env
+GITHUB_TOKEN=your_personal_access_token_here
+```
+Or write your token to `~/.config/app-pro/github_token` to configure it globally.
+
 ---
 
+## 🖼️ Preview
+
 <p align="center">
-  <img src="assets/screenshot.png" alt="App Pro" width="600" />
+  <img src="assets/screenshot.png" alt="App Pro Interface" width="600" />
 </p>
 
 ---
 
 ## 🗑️ Uninstallation
 
+Remove App Pro and its desktop shortcuts cleanly:
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/the-shoaib2/app-pro/main/uninstall.sh | sudo bash
+```
+
+To purge local app databases and settings:
+```bash
+rm -rf ~/.local/share/app-pro
 ```
 
 ---
 
 ## ⚖️ License
-[MIT](LICENSE)
+
+This project is licensed under the [MIT License](LICENSE).
 
 
