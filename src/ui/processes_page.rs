@@ -166,19 +166,16 @@ impl ProcessesPage {
         header_box.set_margin_start(12);
         header_box.set_margin_end(12);
 
-        let widths: [i32; 5] = [55, 0, 80, 70, 70];
-        for (i, text) in ["PID", "Name", "Memory", "Port", "User"].iter().enumerate() {
-            let h = Label::new(Some(text));
+        let widths: [i32; 5] = [70, 0, 90, 90, 80];
+        let headers = ["PID", "Name", "Memory", "Port", "User"];
+        for i in 0..5 {
+            let h = Label::new(Some(headers[i]));
             h.set_css_classes(&["process-header"]);
+            h.set_halign(gtk4::Align::Start);
             if i == 1 {
                 h.set_hexpand(true);
-                h.set_halign(gtk4::Align::Start);
-            } else if i == 2 {
-                h.set_width_request(widths[i]);
-                h.set_halign(gtk4::Align::End);
             } else {
                 h.set_width_request(widths[i]);
-                h.set_halign(gtk4::Align::Start);
             }
             header_box.append(&h);
         }
@@ -190,14 +187,14 @@ impl ProcessesPage {
             let row = ListBoxRow::new();
             let hbox = Box::new(gtk4::Orientation::Horizontal, 12);
             hbox.set_css_classes(&["process-row"]);
-            hbox.set_margin_top(6);
-            hbox.set_margin_bottom(6);
+            hbox.set_margin_top(8);
+            hbox.set_margin_bottom(8);
             hbox.set_margin_start(12);
             hbox.set_margin_end(12);
 
             let pid_label = Label::new(Some(&proc.pid.to_string()));
             pid_label.set_css_classes(&["process-pid"]);
-            pid_label.set_width_request(55);
+            pid_label.set_width_request(70);
             pid_label.set_halign(gtk4::Align::Start);
 
             let name_label = Label::new(Some(&proc.name));
@@ -215,8 +212,8 @@ impl ProcessesPage {
             };
             let mem_label = Label::new(Some(&mem_str));
             mem_label.set_css_classes(&["process-mem"]);
-            mem_label.set_width_request(80);
-            mem_label.set_halign(gtk4::Align::End);
+            mem_label.set_width_request(90);
+            mem_label.set_halign(gtk4::Align::Start);
 
             let port_str = if proc.ports.is_empty() {
                 "-".to_string()
@@ -225,13 +222,13 @@ impl ProcessesPage {
             };
             let port_label = Label::new(Some(&port_str));
             port_label.set_css_classes(&["process-port"]);
-            port_label.set_width_request(70);
+            port_label.set_width_request(90);
             port_label.set_halign(gtk4::Align::Start);
             port_label.set_ellipsize(gtk4::pango::EllipsizeMode::End);
 
             let user_label = Label::new(Some(&proc.user));
             user_label.set_css_classes(&["process-user"]);
-            user_label.set_width_request(70);
+            user_label.set_width_request(80);
             user_label.set_halign(gtk4::Align::Start);
 
             hbox.append(&pid_label);
