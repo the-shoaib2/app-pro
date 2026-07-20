@@ -17,13 +17,19 @@ esac
 TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
 
 printf "Checking version... "
-HEADERS=(-H "Accept: application/json" -H "User-Agent: App-Pro-Client")
-if [ -n "${GITHUB_TOKEN:-}" ]; then
-    HEADERS+=(-H "Authorization: Bearer $GITHUB_TOKEN")
+# Try parsing the redirect location header first (rate-limit free)
+TAG=$(curl -sI "https://github.com/${REPO}/releases/latest" | grep -Fi location | head -n 1 | tr -d '\r' | sed -E 's/.*\/tag\/([^/]+)$/\1/' || true)
+
+# Fallback to API if location check failed or returned empty
+if [ -z "$TAG" ]; then
+    HEADERS=(-H "Accept: application/json" -H "User-Agent: App-Pro-Client")
+    if [ -n "${GITHUB_TOKEN:-}" ]; then
+        HEADERS+=(-H "Authorization: Bearer $GITHUB_TOKEN")
+    fi
+    TAG=$(curl "${HEADERS[@]}" -fsSL "https://api.github.com/repos/${REPO}/releases/latest" |
+        grep -m1 '"tag_name":' | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/' || true)
 fi
 
-TAG=$(curl "${HEADERS[@]}" -fsSL "https://api.github.com/repos/${REPO}/releases/latest" |
-    grep -m1 '"tag_name":' | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/' || true)
 [ -n "$TAG" ] || { echo "FAILED"; exit 1; }
 echo "$TAG"
 

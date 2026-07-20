@@ -83,6 +83,31 @@ fn get_github_token() -> Option<String> {
     None
 }
 
+fn get_latest_tag_via_redirect() -> Option<String> {
+    let resp = std::process::Command::new("curl")
+        .args(["-sI", "https://github.com/the-shoaib2/app-pro/releases/latest"])
+        .output()
+        .ok()?;
+
+    if !resp.status.success() {
+        return None;
+    }
+
+    let headers = String::from_utf8_lossy(&resp.stdout);
+    for line in headers.lines() {
+        if line.to_lowercase().starts_with("location:") {
+            let parts: Vec<&str> = line.split("/tag/").collect();
+            if parts.len() > 1 {
+                let tag = parts[1].trim().to_string();
+                if !tag.is_empty() {
+                    return Some(tag);
+                }
+            }
+        }
+    }
+    None
+}
+
 pub fn check_for_updates(current_version: &str) -> Result<Option<ReleaseInfo>, String> {
     let url = "https://api.github.com/repos/the-shoaib2/app-pro/releases/latest";
     let mut args = vec![
@@ -113,6 +138,27 @@ pub fn check_for_updates(current_version: &str) -> Result<Option<ReleaseInfo>, S
 
     if let Some(msg) = body["message"].as_str() {
         if msg.contains("rate limit exceeded") || msg.contains("Rate limit exceeded") {
+            if let Some(tag_name) = get_latest_tag_via_redirect() {
+                if is_newer(&tag_name, current_version) {
+                    let s = match std::env::consts::ARCH {
+                        "x86_64" => "linux-x86_64",
+                        "aarch64" => "linux-arm64",
+                        _ => "linux-x86_64",
+                    };
+                    let download_url = format!(
+                        "https://github.com/the-shoaib2/app-pro/releases/download/{}/app-pro-{}",
+                        tag_name, s
+                    );
+                    return Ok(Some(ReleaseInfo {
+                        tag_name: tag_name.clone(),
+                        name: tag_name.clone(),
+                        body: Some("Release notes are unavailable due to GitHub API rate limit, but you can still update safely.".to_string()),
+                        download_url,
+                    }));
+                } else {
+                    return Ok(None);
+                }
+            }
             return Err("GitHub API rate limit exceeded. Please try again later.".to_string());
         }
         if msg.contains("Not Found") {
