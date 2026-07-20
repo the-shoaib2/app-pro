@@ -45,6 +45,7 @@ impl AppDatabase {
         Self::get_db_path()
     }
 
+    #[allow(dead_code)]
     pub fn new_from_conn(conn: Connection) -> Self {
         let db = AppDatabase { conn: Mutex::new(conn) };
         db.initialize_tables().ok();
