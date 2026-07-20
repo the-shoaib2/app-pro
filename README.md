@@ -35,16 +35,7 @@ Install globally using the official installer script:
 curl -fsSL https://raw.githubusercontent.com/the-shoaib2/app-pro/main/install.sh | sudo bash
 ```
 
-### 🔑 GitHub Rate Limits (Optional)
-If you run into anonymous GitHub API rate limits while checking for updates, you can create a local `.env` file in the project root:
-```env
-GITHUB_TOKEN=your_personal_access_token_here
-```
-Or write your token to `~/.config/app-pro/github_token` to configure it globally.
-
 ---
-
-## 🖼️ Preview
 
 <p align="center">
   <img src="assets/screenshot.png" alt="App Pro Interface" width="600" />
