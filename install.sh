@@ -17,8 +17,13 @@ esac
 TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
 
 printf "Checking version... "
-TAG=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" |
-    grep -m1 '"tag_name":' | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/')
+HEADERS=(-H "Accept: application/json" -H "User-Agent: App-Pro-Client")
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+    HEADERS+=(-H "Authorization: Bearer $GITHUB_TOKEN")
+fi
+
+TAG=$(curl "${HEADERS[@]}" -fsSL "https://api.github.com/repos/${REPO}/releases/latest" |
+    grep -m1 '"tag_name":' | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/' || true)
 [ -n "$TAG" ] || { echo "FAILED"; exit 1; }
 echo "$TAG"
 
