@@ -250,7 +250,7 @@ impl AppProUI {
                 std::thread::spawn(move || {
                     match crate::updater::perform_update(&rel) {
                         Ok(_) => {
-                            gtk4::glib::idle_add_local(move || {
+                            gtk4::glib::idle_add(move || {
                                 let success_dialog = gtk4::MessageDialog::new(
                                     None::<&gtk4::Window>,
                                     gtk4::DialogFlags::MODAL,
@@ -267,7 +267,7 @@ impl AppProUI {
                             });
                         }
                         Err(e) => {
-                            gtk4::glib::idle_add_local(move || {
+                            gtk4::glib::idle_add(move || {
                                 let err_dialog = gtk4::MessageDialog::new(
                                     None::<&gtk4::Window>,
                                     gtk4::DialogFlags::MODAL,

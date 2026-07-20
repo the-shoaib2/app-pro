@@ -191,3 +191,42 @@
     outline: none;
     box-shadow: 0 0 0 2px alpha(@theme_selected_bg_color, 0.5);
 }
+
+/* ── Dialog Buttons (Themed to Primary/Secondary) ── */
+dialog button,
+messagedialog button {
+    background-color: alpha(@theme_fg_color, 0.08);
+    color: @theme_fg_color;
+    border: none;
+    border-radius: 9999px;
+    font-weight: 500;
+    padding: 4px 16px;
+    transition: all 150ms ease;
+    min-height: 24px;
+}
+
+dialog button:hover,
+messagedialog button:hover {
+    background-color: alpha(@theme_fg_color, 0.14);
+}
+
+dialog button:active,
+messagedialog button:active {
+    background-color: alpha(@theme_fg_color, 0.20);
+}
+
+/* Suggested Action in Dialogs (Primary Style) */
+dialog button.suggested-action,
+messagedialog button.suggested-action,
+dialog button:first-child,
+messagedialog button:first-child {
+    background-color: @theme_selected_bg_color;
+    color: @theme_selected_fg_color;
+}
+
+dialog button.suggested-action:hover,
+messagedialog button.suggested-action:hover,
+dialog button:first-child:hover,
+messagedialog button:first-child:hover {
+    background-color: shade(@theme_selected_bg_color, 1.1);
+}
