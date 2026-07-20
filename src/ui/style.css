@@ -141,23 +141,31 @@ scrolledwindow {
 }
 
 /* ── Install Progress ── */
-/* ── Install Progress ── */
 .install-progress {
-    margin: 4px 0;
-    min-height: 22px;
-    border-radius: 11px;
+    margin: 8px 0;
+    min-height: 12px;
+    border-radius: 6px;
+    border: none;
+    outline: none;
+    box-shadow: none;
 }
 
 progressbar.install-progress trough {
-    border-radius: 10px;
-    min-height: 20px;
+    border-radius: 6px;
+    min-height: 12px;
     background-color: alpha(@theme_fg_color, 0.08);
-    border: 1px solid alpha(@theme_fg_color, 0.05);
+    border: none;
+    outline: none;
+    box-shadow: none;
 }
 
 .install-progress progress {
-    border-radius: 11px;
+    border-radius: 6px;
+    min-height: 12px;
     background-color: @theme_selected_bg_color;
+    border: none;
+    outline: none;
+    box-shadow: none;
 }
 
 /* ── File Entry ── */
