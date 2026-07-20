@@ -1,6 +1,6 @@
 [package]
 name = "app-pro"
-version = "1.0.7"
+version = "1.0.8"
 edition = "2021"
 description = "Unified Linux system utility: installer, uninstaller, cleaner, process manager, and app dashboard"
 
